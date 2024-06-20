@@ -1,0 +1,7 @@
+flask
+flask-restful
+flask-cors
+flask-swagger-ui
+pyyaml
+gunicorn
+requests
