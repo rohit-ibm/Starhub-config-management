@@ -1,0 +1,37 @@
+openapi: 3.0.0
+info:
+  title: Config management swagger for backend APIs
+  description: This is swagger for documenation of all backend APIs being used for config management tool.
+  version: 1.0.0
+servers:
+  - url: http://9.46.116.210:5000
+paths:
+  /get_token:
+    get:
+      summary: Get authentication token for sevone apis.
+      parameters:
+        - name: username
+          in: query
+          description: The username of user.
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password of user.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Generated token from sevone.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    token:
+                      type: string
+                      example: "<alphanumericvalue>"
