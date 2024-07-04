@@ -35,3 +35,212 @@ paths:
                     token:
                       type: string
                       example: "<alphanumericvalue>"
+  /inventory_data:
+    get:
+      summary: Get all devices
+      parameters:
+        - in: query
+          name: device_group
+          schema:
+            type: string
+          description: The devicegroup to filter devices
+      responses:
+        '200':
+          description: A list of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    hostname:
+                      type: string
+                    ip_address:
+                      type: string
+                    device_group:
+                      type: string
+                    device_type:
+                      type: string
+                    username:
+                      type: string
+                    password:
+                      type: string
+                    location:
+                      type: string
+    post:
+      summary: Add devices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  hostname:
+                    type: string
+                  ip_address:
+                    type: string
+                  device_group:
+                    type: string
+                  device_type:
+                    type: string
+                  username:
+                    type: string
+                  password:
+                    type: string
+                  location:
+                    type: string
+      responses:
+        '201':
+          description: Devices added successfully
+        '400':
+          description: Invalid input
+  /config_files:
+    get:
+      summary: Get all config files
+      parameters:
+        - in: query
+          name: hostname
+          schema:
+            type: string
+          description: The hostname to filter config files
+      responses:
+        '200':
+          description: A list of config files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    hostname:
+                      type: string
+                    filename:
+                      type: string
+                    datetime:
+                      type: string
+                    backup_status:
+                      type: string
+                    filepath:
+                      type: string
+      responses:
+        '400':
+          description: Invalid input
+    post:
+      summary: Add config files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  hostname:
+                    type: string
+                  filename:
+                    type: string
+                  datetime:
+                    type: string
+                  backup_status:
+                    type: string
+                  filepath:
+                    type: string
+      responses:
+        '201':
+          description: Config files added successfully
+        '400':
+          description: Invalid input
+  /get_deviceGroup:
+    get:
+      summary: Get all device groups
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Bearer token for authorization
+          schema:
+            type: string
+            example: "Bearer <your-token>"
+      responses:
+        '200':
+          description: A list of device groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    group_id:
+                      type: integer
+                    group_name:
+                      type: string
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+  /post_backup:
+    post:
+      summary: Get the backup of devices
+      requestBody:
+        description: It collects backup of devices and store on predifined directory.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inventory:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      devicename:
+                        type: string
+                      ipaddress:
+                        type: string
+                      username:
+                        type: string
+                      password:
+                        type: string
+      responses:
+        201:
+          description: Successfully collected the inventory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Backup collected successfully"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid input"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
