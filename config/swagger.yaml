@@ -100,6 +100,32 @@ paths:
           description: Devices added successfully
         '400':
           description: Invalid input
+  /inventory/devicegroups:
+    get:
+      summary: Retrieve device groups
+      responses:
+        200:
+          description: Successfully retrieved device groups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devicegroups:
+                    type: array
+                    items:
+                      type: string
+                      example: "group1"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
   /config_files:
     get:
       summary: Get all config files
