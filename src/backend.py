@@ -6,6 +6,7 @@ import os
 from logger_config import logger
 from flask import Flask, jsonify, request, current_app as app
 from flask_restful import Api, Resource
+from flask_cors import CORS  # Import the CORS package
 from flask_swagger_ui import get_swaggerui_blueprint
 import subprocess
 import json
@@ -14,6 +15,7 @@ from datetime import datetime
 
 def create_app(namespace):
     app = Flask(__name__)
+    CORS(app) # Enable CORS for the Flask app
     api = Api(app)
 
     # Load the swagger.yaml file
@@ -38,9 +40,10 @@ def create_app(namespace):
     
     # Add the resource to the API
     api.add_resource(get_token, '/get_token',resource_class_kwargs={'namespace': namespace})
-    api.add_resource(inventory_management, '/inventory_data')
+    api.add_resource(inventory_management, '/inventory_data', '/inventory_data/devicegroups')
     api.add_resource(file_management, '/config_files')
     api.add_resource(backup_management, '/post_backup')
+    
 
 
     return app
@@ -135,8 +138,16 @@ class inventory_management(Resource):
         return response
     
     def get(self):
+        
+        devicegroup = request.args.get('device_group')
+        if request.path.endswith('/groups'):
+            return self.get_device_groups()
+        else:
+            return self.get_inventory(devicegroup)
+        
+    def get_inventory(self, devicegroup):
+
         try:
-            devicegroup = request.args.get('device_group')
             # Connect to the database (or create it if it doesn't exist)
             conn = sqlite3.connect('config.db')
 
@@ -150,7 +161,7 @@ class inventory_management(Resource):
             if devicegroup:
                     cur.execute('SELECT * FROM inventory WHERE device_group = ?', (devicegroup,))
             else:
-                    cur.execute("SELECT * FROM configfiles")
+                    cur.execute("SELECT * FROM inventory")
             inventory_rows = cur.fetchall()
             logger.debug("\nfiles:")
             # for row in user_rows:
@@ -174,6 +185,28 @@ class inventory_management(Resource):
         except sqlite3.OperationalError as e:
             logger.error(f"OperationalError: {e}")
             return str(e)
+        finally:
+            conn.close()
+
+    def get_device_groups(self):
+        try:
+            # Connect to the database
+            conn = sqlite3.connect('config.db')
+            conn.execute("PRAGMA foreign_keys = 1")
+            cur = conn.cursor()
+
+            # Query to get distinct device groups
+            cur.execute("SELECT DISTINCT device_group FROM inventory")
+            device_groups = cur.fetchall()
+            logger.debug("Fetched device groups: %s", device_groups)
+            result = [row[3] for row in device_groups]
+
+            return jsonify(result)
+
+        except sqlite3.OperationalError as e:
+            logger.error(f"OperationalError: {e}")
+            return str(e), 500  # Return HTTP 500 status code for server error
+
         finally:
             conn.close()
 
@@ -232,6 +265,7 @@ class file_management(Resource):
             return str(e)
         finally:
             conn.close()
+            
         
 
 
