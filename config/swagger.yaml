@@ -4,7 +4,7 @@ info:
   description: This is swagger for documenation of all backend APIs being used for config management tool.
   version: 1.0.0
 servers:
-  - url: http://9.46.116.210:5000
+  - url: http://9.46.112.167:5000
 paths:
   /get_token:
     get:
@@ -100,7 +100,7 @@ paths:
           description: Devices added successfully
         '400':
           description: Invalid input
-  /inventory/devicegroups:
+  /inventory_data/devicegroups:
     get:
       summary: Retrieve device groups
       responses:
@@ -116,6 +116,63 @@ paths:
                     items:
                       type: string
                       example: "group1"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
+  /inventory_data/devices:
+    get:
+      summary: Retrieve devices by names
+      parameters:
+        - in: query
+          name: devices
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["router1", "Device2"]
+      responses:
+        200:
+          description: Successfully retrieved the devices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        devicename:
+                          type: string
+                          example: "router1"
+                        ipaddress:
+                          type: string
+                          example: "10.52.0.191"
+                        username:
+                          type: string
+                          example: "developer"
+                        password:
+                          type: string
+                          example: "DevTeam123#"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid input"
         500:
           description: Internal server error
           content:
@@ -186,35 +243,6 @@ paths:
           description: Config files added successfully
         '400':
           description: Invalid input
-  /get_deviceGroup:
-    get:
-      summary: Get all device groups
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token for authorization
-          schema:
-            type: string
-            example: "Bearer <your-token>"
-      responses:
-        '200':
-          description: A list of device groups
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    group_id:
-                      type: integer
-                    group_name:
-                      type: string
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
   /post_backup:
     post:
       summary: Get the backup of devices
@@ -270,3 +298,34 @@ paths:
                   message:
                     type: string
                     example: "Internal server error"
+  /device_groups:
+    get:
+      summary: Get all devices of device groups from SEVONE
+      responses:
+        '200':
+          description: A list of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    device_id:
+                      type: integer
+                    hostname:
+                      type: string
+                    ip_address:
+                      type: string
+                    device_group:
+                      type: string
+                    device_group_id:
+                      type: string
+                    device_type:
+                      type: string
+                    username:
+                      type: string
+                    password:
+                      type: string
+                    location:
+                      type: string

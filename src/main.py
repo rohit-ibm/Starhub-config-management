@@ -25,7 +25,8 @@ cur.execute('''
         username TEXT NOT NULL,
         password TEXT NOT NULL,
         location TEXT NOT NULL,
-        backup_status TEXT DEFAULT 'NA',
+        backup_status TEXT DEFAULT 'NOT TRIGGERED',
+        last_backup_time TEXT DEFAULT 'NOT STARTED',
         UNIQUE(hostname, ip_address) -- Ensures uniqueness       
     )
 ''')
