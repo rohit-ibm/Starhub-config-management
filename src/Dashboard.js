@@ -4,7 +4,6 @@ import DiscoveryManagement from './DiscoveryManagement';
 import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
 import CompareBackup from './CompareBackup';
-import './ListDevice.css';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -25,7 +24,7 @@ const Dashboard = () => {
           <Route path="discovery-management" element={<DiscoveryManagement />} />
           <Route path="backup-management" element={<BackupManagement />} />
           <Route path="list-device" element={<ListDevice />} />
-          <Route path="compare-backup/:deviceName" element={<CompareBackup />} />
+          <Route path="compare-backup/:hostname" element={<CompareBackup />} />
         </Routes>
       </main>
     </div>

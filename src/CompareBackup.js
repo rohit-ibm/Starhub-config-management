@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { diffWords } from 'diff';
+import axios from 'axios';
 import './CompareBackup.css';
 
 const CompareBackup = () => {
-  const [backupFiles, setBackupFiles] = useState([
-    { fileName: 'config1.txt', date: '2024-06-01', time: '10:00 AM' },
-    { fileName: 'config2.txt', date: '2024-06-02', time: '11:00 AM' },
-    { fileName: 'config3.txt', date: '2024-06-03', time: '12:00 PM' },
-  ]);
+  const { hostname } = useParams(); // Get the device name from the URL params
+  const [backupFiles, setBackupFiles] = useState([]);
+  const [filteredBackupFiles, setFilteredBackupFiles] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileContents, setFileContents] = useState({});
   const [diffResult, setDiffResult] = useState(null);
   const [viewedFileContent, setViewedFileContent] = useState('');
   const [viewedFileName, setViewedFileName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const filesPerPage = 5; // Adjust the number of files per page as needed
 
   useEffect(() => {
-    // Fetch data from an API if needed
-    // Example:
-    // fetch('/api/backup-files')
-    //   .then(response => response.json())
-    //   .then(data => setBackupFiles(data))
-    //   .catch(error => console.error('Error fetching backup files:', error));
-  }, []);
+    // Fetch data from the API
+    const fetchBackupFiles = async () => {
+      try {
+        const response = await axios.get(`http://9.46.112.167:5000/config_files/list?hostname=${hostname}`);
+        setBackupFiles(response.data);
+        setFilteredBackupFiles(response.data);
+      } catch (error) {
+        console.error('Error fetching backup files:', error);
+      }
+    };
 
-  const handleCheckboxChange = (fileName) => {
+    fetchBackupFiles();
+  }, [hostname]);
+
+  const handleCheckboxChange = (filename) => {
     setSelectedFiles((prevSelectedFiles) => {
-      if (prevSelectedFiles.includes(fileName)) {
-        return prevSelectedFiles.filter((file) => file !== fileName);
+      if (prevSelectedFiles.includes(filename)) {
+        return prevSelectedFiles.filter((file) => file !== filename);
       } else if (prevSelectedFiles.length < 2) {
-        return [...prevSelectedFiles, fileName];
+        return [...prevSelectedFiles, filename];
       } else {
         alert('You can only select up to 2 files.');
         return prevSelectedFiles;
@@ -37,11 +46,13 @@ const CompareBackup = () => {
   };
 
   const handleDisplaySelected = () => {
-    const fileFetchPromises = selectedFiles.map((fileName) => {
-      return fetch(`${process.env.PUBLIC_URL}/${fileName}`)
-        .then((response) => response.text())
-        .then((data) => ({ [fileName]: data }))
-        .catch((error) => console.error('Error fetching file content:', error));
+    const fileFetchPromises = selectedFiles.map((filename) => {
+      return axios.get(`http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`)
+        .then((response) => ({ [filename]: response.data }))
+        .catch((error) => {
+          console.error('Error fetching file content:', error);
+          return { [filename]: '' }; // Return empty content on error
+        });
     });
 
     Promise.all(fileFetchPromises).then((fileDataArray) => {
@@ -60,23 +71,58 @@ const CompareBackup = () => {
     });
   };
 
-  const handleView = (fileName) => {
-    fetch(`${process.env.PUBLIC_URL}/${fileName}`)
-      .then((response) => response.text())
-      .then((data) => {
-        setViewedFileName(fileName);
-        setViewedFileContent(data);
+  const handleView = (filename) => {
+    axios.get(`http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`)
+      .then((response) => {
+        setViewedFileName(filename);
+        setViewedFileContent(response.data);
         setDiffResult(null); // Clear diff result when viewing a file
       })
       .catch((error) => console.error('Error fetching file content:', error));
   };
 
-  const handleDownload = (fileName) => {
-    const link = document.createElement('a');
-    link.href = `${process.env.PUBLIC_URL}/${fileName}`;
-    link.download = fileName;
-    link.click();
+  const handleDownload = (filename) => {
+    axios({
+      url: `http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`,
+      method: 'GET',
+      responseType: 'blob', // Important for downloading files
+    })
+      .then((response) => {
+        // Create a link element, set its href to a URL representing the blob, and click it
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename); // Set the file name for download
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link); // Clean up the DOM
+      })
+      .catch((error) => {
+        console.error('Error downloading file:', error);
+      });
   };
+
+  const handleSearch = () => {
+    const term = searchTerm.toLowerCase();
+    const filteredFiles = backupFiles.filter(file =>
+      file.filename.toLowerCase().includes(term) || file.hostname.toLowerCase().includes(term)
+    );
+    setFilteredBackupFiles(filteredFiles);
+    setCurrentPage(1); // Reset to first page after search
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) => prevPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage((prevPage) => prevPage - 1);
+  };
+
+  const indexOfLastFile = currentPage * filesPerPage;
+  const indexOfFirstFile = indexOfLastFile - filesPerPage;
+  const currentFiles = filteredBackupFiles.slice(indexOfFirstFile, indexOfLastFile);
+  const totalPages = Math.ceil(filteredBackupFiles.length / filesPerPage);
 
   const renderDiff = (diff) => {
     const diff1 = [];
@@ -116,42 +162,58 @@ const CompareBackup = () => {
   return (
     <div className="compare-backup">
       <h2>Compare Backup Files</h2>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search by hostname or filename"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <button onClick={handleSearch} className="search-button">Search</button>
+      </div>
       <table>
         <thead>
           <tr>
             <th>Select</th>
             <th>File Name</th>
-            <th>Date</th>
-            <th>Time</th>
+            <th>Hostname</th>
+            <th>Last Modified</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {backupFiles.map((file, index) => (
+          {currentFiles.map((file, index) => (
             <tr key={index}>
               <td>
                 <input
                   type="checkbox"
-                  checked={selectedFiles.includes(file.fileName)}
-                  onChange={() => handleCheckboxChange(file.fileName)}
+                  checked={selectedFiles.includes(file.filename)}
+                  onChange={() => handleCheckboxChange(file.filename)}
                   disabled={
-                    !selectedFiles.includes(file.fileName) &&
+                    !selectedFiles.includes(file.filename) &&
                     selectedFiles.length >= 2
                   }
                 />
               </td>
-              <td>{file.fileName}</td>
-              <td>{file.date}</td>
-              <td>{file.time}</td>
+              <td>{file.filename}</td>
+              <td>{file.hostname}</td>
+              <td>{new Date(file.last_modified).toLocaleString()}</td>
               <td>
-                <button onClick={() => handleView(file.fileName)}>View</button>
-                <button onClick={() => handleDownload(file.fileName)}>Download</button>
+                <button onClick={() => handleView(file.filename)} className="view-button">View</button>
+                <button onClick={() => handleDownload(file.filename)} className="download-button">Download</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <button onClick={handleDisplaySelected}>Display and compare selected config files</button>
+      <Pagination
+        currentPage={currentPage}
+        handleNextPage={handleNextPage}
+        handlePrevPage={handlePrevPage}
+        totalPages={totalPages}
+      />
+      <button onClick={handleDisplaySelected} className="compare-button">Display and compare selected config files</button>
       {diffResult && (
         <div className="file-contents">
           <h3>Selected File Contents</h3>
@@ -177,10 +239,32 @@ const CompareBackup = () => {
       )}
       {viewedFileContent && !diffResult && (
         <div className="viewed-file-content">
-          <h3>Viewing Content of {viewedFileName}</h3>
+          <h3>Viewing content of {viewedFileName}</h3>
           <pre>{viewedFileContent}</pre>
         </div>
       )}
+    </div>
+  );
+};
+
+const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
+  return (
+    <div className="pagination">
+      <button
+        onClick={handlePrevPage}
+        disabled={currentPage === 1}
+        className="page-link"
+      >
+        {'<'}
+      </button>
+      <span className="page-number">{currentPage}</span>
+      <button
+        onClick={handleNextPage}
+        disabled={currentPage === totalPages}
+        className="page-link"
+      >
+        {'>'}
+      </button>
     </div>
   );
 };
