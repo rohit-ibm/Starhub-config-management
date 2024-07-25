@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './Login';
 import Dashboard from './Dashboard';
+import CompareBackup from './CompareBackup';
 import './App.css';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
+          <Route path="compare-backup/:hostname" element={<CompareBackup />} />
         </Routes>
       </div>
     </Router>
