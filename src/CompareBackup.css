@@ -1,0 +1,109 @@
+.container {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header, .subHeader {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: right;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 20px; /* Add some space between the input and the button */
+  width: 400px;
+}
+
+.search-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.compare-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.tableHeader, .tableCell {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.button-container button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 10px; /* Adding space between buttons */
+}
+
+.button-container button:hover {
+  background-color: #0056b3;
+}
+
+.view-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.view-button:hover {
+  background-color: #0056b3;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.page-link {
+  margin: 0 10px;
+}
+
+.page-info {
+  margin: 0 10px;
+}
+
+.current-page {
+  font-weight: bold;
+}

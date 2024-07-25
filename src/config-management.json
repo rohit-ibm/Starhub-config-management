@@ -1,0 +1,16 @@
+{
+  "deviceGroups": [
+    {
+      "name": "Group1",
+      "path": "/path/to/group1"
+    },
+    {
+      "name": "Group2",
+      "path": "/path/to/group2"
+    },
+    {
+      "name": "Group3",
+      "path": "/path/to/group3"
+    }
+  ]
+}

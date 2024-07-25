@@ -1,0 +1,138 @@
+.container {
+  text-align: center;
+}
+
+.header, .subHeader {
+  text-align: center;
+}
+
+.device-group-controls {
+  margin-bottom: 20px;
+}
+
+.select, .label {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.button-container button {
+  margin: 0 10px;
+}
+
+.immediate-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.immediate-button:hover {
+  background-color: #0056b3;
+}
+
+.schedule-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.schedule-button:hover {
+  background-color: #0056b3;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.tableHeader {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.tableCell {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.page-link {
+  margin: 0 10px;
+}
+
+.page-info {
+  margin: 0 10px;
+}
+
+.current-page {
+  font-weight: bold;
+}
+
+.datepicker-container {
+  position: absolute;
+  top: 30%;
+  left: 75%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: space-between; /* Aligns children to extreme ends */
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.select-all-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  margin-right: 650px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.search-input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-right: 20px; /* Add some space between the input and the button */
+  width: 260px;
+}
+
+.search-button {
+  padding: 8px 12px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}

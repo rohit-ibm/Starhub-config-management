@@ -38,7 +38,7 @@
 
 .dashboard header {
   width: 100%;
-  padding: 1em;
+  padding: 0.5em;
   background-color: #333;
   color: #fff;
 }
@@ -56,6 +56,6 @@
 .dashboard main {
   padding: 1em;
   width: 100%;
-  max-width: 800px;
+  max-width: 80%;
   margin: auto;
 }
