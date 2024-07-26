@@ -12,7 +12,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/dashboard/*" element={<Dashboard />} />
-          <Route path="compare-backup/:hostname" element={<CompareBackup />} />
         </Routes>
       </div>
     </Router>

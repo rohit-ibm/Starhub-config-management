@@ -24,7 +24,7 @@ const Dashboard = () => {
           <Route path="discovery-management" element={<DiscoveryManagement />} />
           <Route path="backup-management" element={<BackupManagement />} />
           <Route path="list-device" element={<ListDevice />} />
-          <Route path="compare-backup/:hostname" element={<CompareBackup />} />
+          <Route path="list-device/compare-backup/:hostname" element={<CompareBackup />} />
         </Routes>
       </main>
     </div>
