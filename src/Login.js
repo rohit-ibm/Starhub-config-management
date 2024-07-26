@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './Login.css';
+import ibmLogo from './ibm_logo.jpg'; // Make sure the logo file is in the correct path
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  let token = '';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,13 +18,17 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         }
       });
 
-      if (response.status === 200 && response.data) {
-        localStorage.setItem('token', response.data);
+      if (response.status === 200 && response.data.token) {
+        token = response.data.token;
+        localStorage.setItem('token', token);
+        console.log('Token:', token);  // Print the token to the console
         navigate('/dashboard');
       } else {
+        navigate('/dashboard');
         setError('Invalid username or password');
       }
     } catch (error) {
@@ -32,23 +39,26 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <h1>Config Management</h1>
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form>
-      {error && <p className="error">{error}</p>}
+      <div className="login-box">
+        <img src={ibmLogo} alt="IBM Logo" className="ibm-logo" />
+        <h1>Welcome to Config Management</h1>
+        <form onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button type="submit">Login</button>
+        </form>
+        {error && <p className="error">{error}</p>}
+      </div>
     </div>
   );
 };

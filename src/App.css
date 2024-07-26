@@ -2,16 +2,8 @@
   text-align: center;
 }
 
-.login-container {
-  max-width: 300px;
-  margin: auto;
-  padding: 1em;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-}
-
 .login-container h1 {
-  margin-bottom: 1em;
+  margin-top: 0;
 }
 
 .login-container input {
