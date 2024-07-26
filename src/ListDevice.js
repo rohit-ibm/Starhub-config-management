@@ -10,30 +10,30 @@ const ListDevice = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const devicesPerPage = 10; // Adjust the number of devices per page as needed
 
-  const handleDownloadAll = (deviceName) => {
-    // Example files for each device
-    const files = [
-      { device: 'Device1', file: 'config1.txt' },
-      { device: 'Device1', file: 'config2.txt' },
-      { device: 'Device1', file: 'config3.txt' },
-      { device: 'Device2', file: 'config4.txt' },
-      { device: 'Device3', file: 'config5.txt' },
-      // Add more files for each device as needed
-    ];
-
-    // Filter files for the selected device
-    const deviceFiles = files.filter(file => file.device === deviceName);
-
-    // Trigger download for each file
-    deviceFiles.forEach(file => {
-      const link = document.createElement('a');
-      link.href = `/${file.file}`;
-      link.download = file.file;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+  const handleDownloadAll = (hostname) => {
+    axios({
+      url: `http://9.46.112.167:5000/config_files/downloadall?hostname=${hostname}`,
+      method: 'GET',
+      responseType: 'blob', // Important for downloading files
+    })
+      .then((response) => {
+        // Construct the filename based on the hostname
+        const filename = `${hostname}_backups.zip`;
+  
+        // Create a link element, set its href to a URL representing the blob, and click it
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename); // Set the file name for download
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode.removeChild(link); // Clean up the DOM
+      })
+      .catch((error) => {
+        console.error('Error downloading file:', error);
+      });
   };
+  
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,16 +105,12 @@ const ListDevice = () => {
               currentDevices.map((device, index) => (
                 <tr key={index}>
                   <td>
-                    <Link to={`/compare-backup/${device.hostname}`}>{device.hostname}</Link>
+                    <Link to={`compare-backup/${device.hostname}`}>{device.hostname}</Link>
                   </td>
                   <td>{device.ip_address}</td>
                   <td>{device.device_group}</td>
                   <td>{device.backup_status}</td>
-                  <td>
-                    <button onClick={() => handleDownloadAll(device.hostname)}>
-                      Download All
-                    </button>
-                  </td>
+                  <td><button onClick={() => handleDownloadAll(device.hostname)} className="download-button">Download All</button></td>
                 </tr>
               ))
             ) : (

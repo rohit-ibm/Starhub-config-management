@@ -107,3 +107,7 @@
 .current-page {
   font-weight: bold;
 }
+
+.viewed-file-content {
+  text-align: left;
+}
