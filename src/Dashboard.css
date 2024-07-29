@@ -26,9 +26,10 @@ header h1 {
   background-color: #ff4b4b;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.7rem 1rem;
   cursor: pointer;
   border-radius: 5px;
+  font-size: 16px;
 }
 
 .logout-button:hover {
@@ -49,6 +50,7 @@ nav ul li {
 nav ul li a {
   text-decoration: none;
   color: #007bff;
+  font-size: 24px;
 }
 
 main {

@@ -18,17 +18,13 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         }
       });
 
-      if (response.status === 200 && response.data.token) {
-        token = response.data.token;
-        localStorage.setItem('token', token);
-        console.log('Token:', token);  // Print the token to the console
+      if (response.status === 200 && response.data) {
+        localStorage.setItem('token', response.data);
         navigate('/dashboard');
       } else {
-        navigate('/dashboard');
         setError('Invalid username or password');
       }
     } catch (error) {
