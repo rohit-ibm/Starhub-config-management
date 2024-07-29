@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Routes, Route } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate } from 'react-router-dom';
 import DiscoveryManagement from './DiscoveryManagement';
 import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
@@ -7,10 +7,18 @@ import CompareBackup from './CompareBackup';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <div className="dashboard">
       <header>
-        <h1>Config Management</h1>
+        <h1>Welcome to Config Management</h1>
+        <button onClick={handleLogout} className="logout-button">Logout</button>
       </header>
       <nav>
         <ul>
