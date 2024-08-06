@@ -39,9 +39,9 @@ def get_device_group(ip_address, bearer_token):
             filtered_groups = {}
             for group in device_groups:
                 children = group.get("children", [])
-                print(children)
+                # print(children)
                 for child in children:
-                    if "All Device Groups/Operating System" in child.get("path", "") and "Cisco" in child.get("name", ""):
+                    if "All Device Groups/Manufacturer" in child.get("path", "") and "Cisco" in child.get("name", ""):
                         filtered_groups[child["name"]] = child["id"]
             return filtered_groups
         except json.JSONDecodeError as e:
@@ -151,7 +151,7 @@ def authenticate(ip_address, username, password):
         logging.error(f"Error: Unable to fetch authentication token. Status code: {res.status_code}")
         return None
     
-    return token
+    return token    
 
 token = authenticate("9.42.110.15:15673", "admin", "sdnban@123")
 
