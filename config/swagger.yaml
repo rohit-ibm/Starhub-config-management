@@ -243,6 +243,149 @@ paths:
           description: Config files added successfully
         '400':
           description: Invalid input
+  /inventory_data/schedule_backup:
+    post:
+      summary: Schedule operations for devices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                  example: "2024-07-17T12:00:00.358Z"
+                devices:
+                  type: array
+                  items:
+                    type: string
+                  example: ["router1", "router2"]
+      responses:
+        '200':
+          description: Operations scheduled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Operations scheduled successfully
+        '400':
+          description: Invalid input
+  /config_files/list:
+    get:
+      summary: List config files for a specific hostname
+      parameters:
+        - in: query
+          name: hostname
+          schema:
+            type: string
+          description: The hostname to filter config files
+          required: true
+      responses:
+        '200':
+          description: A list of config files for the specified hostname
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    filename:
+                      type: string
+        '400':
+          description: Invalid input
+        '404':
+          description: Hostname not found
+  /config_files/view:
+    get:
+      summary: View a specific config file
+      parameters:
+        - in: query
+          name: hostname
+          schema:
+            type: string
+          description: The hostname to filter config files
+          required: true
+        - in: query
+          name: filename
+          schema:
+            type: string
+          description: The filename to view
+          required: true
+      responses:
+        '200':
+          description: The contents of the specified config file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hostname:
+                    type: string
+                  filename:
+                    type: string
+                  content:
+                    type: string
+                    description: The contents of the config file
+        '400':
+          description: Invalid input
+        '404':
+          description: Config file not found
+  /config_files/download:
+    get:
+      summary: Download a specific config file
+      parameters:
+        - in: query
+          name: hostname
+          schema:
+            type: string
+          description: The hostname associated with the config file
+          required: true
+        - in: query
+          name: filename
+          schema:
+            type: string
+          description: The name of the config file to download
+          required: false
+      responses:
+        '200':
+          description: The config file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid input
+        '404':
+          description: Config file not found
+  /config_files/downloadall:
+    get:
+      summary: Download all backup files
+      parameters:
+        - in: query
+          name: hostname
+          schema:
+            type: string
+          description: The hostname associated with the config file
+          required: true
+      responses:
+        '200':
+          description: The config files
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid input
+        '404':
+          description: hostname not found
   /post_backup:
     post:
       summary: Get the backup of devices
@@ -329,3 +472,198 @@ paths:
                       type: string
                     location:
                       type: string
+  /update_device_groups:
+    get:
+      summary: Get all devices of device groups from SEVONE and update new one
+      responses:
+        '200':
+          description: A list of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    device_id:
+                      type: integer
+                    hostname:
+                      type: string
+                    ip_address:
+                      type: string
+                    device_group:
+                      type: string
+                    device_group_id:
+                      type: string
+                    device_type:
+                      type: string
+                    username:
+                      type: string
+                    password:
+                      type: string
+                    location:
+                      type: string
+  /delete_devices:
+    delete:
+      summary: Delete devices from the database
+      parameters:
+        - in: query
+          name: devices
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          description: The hostnames of the devices to be deleted
+      responses:
+        '200':
+          description: Devices deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Devices deleted successfully
+        '400':
+          description: Invalid input
+        '404':
+          description: Devices not found
+  /set_schedule:
+    post:
+      summary: Set schedule for devices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule:
+                  type: string
+                  example: "weekly"
+                customDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+                devices:
+                  type: array
+                  items:
+                    type: string
+                  example: ["router2", "router3"]
+                dayOfWeek:
+                  type: string
+                  example: "mon"
+                hour:
+                  type: integer
+                  example: 15
+                minute:
+                  type: integer
+                  example: 0
+                day:
+                  type: integer
+                  nullable: true
+                  example: null
+      responses:
+        '200':
+          description: Schedule set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Schedule set successfully
+        '400':
+          description: Invalid input
+    get:
+      summary: Get all schedules
+      responses:
+        '200':
+          description: A list of schedules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schedules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        schedule:
+                          type: string
+                        custom_date:
+                          type: string
+                          format: date-time
+                        devices:
+                          type: array
+                          items:
+                            type: string
+                        day_of_week:
+                          type: string
+                        hour:
+                          type: integer
+                        minute:
+                          type: integer
+                        day:
+                          type: integer
+                          nullable: true
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /delete_schedule:
+    delete:
+      summary: delete schedule for devices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                schedule:
+                  type: string
+                  example: "weekly"
+                customDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  example: null
+                devices:
+                  type: array
+                  items:
+                    type: string
+                  example: ["router2", "router3"]
+                dayOfWeek:
+                  type: string
+                  example: "mon"
+                hour:
+                  type: integer
+                  example: 15
+                minute:
+                  type: integer
+                  example: 0
+                day:
+                  type: integer
+                  nullable: true
+                  example: null
+      responses:
+        '200':
+          description: Deleted Schedule set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Deleted Schedule set successfully
+        '400':
+          description: Invalid input
