@@ -530,7 +530,7 @@ paths:
           description: Invalid input
         '404':
           description: Devices not found
-  /set_schedule:
+  /schedules:
     post:
       summary: Set schedule for devices
       requestBody:
@@ -580,7 +580,15 @@ paths:
         '400':
           description: Invalid input
     get:
-      summary: Get all schedules
+      summary: Get schedules
+      description: Get a list of schedules, optionally filtered by devices.
+      parameters:
+        - in: query
+          name: devices
+          schema:
+            type: string
+          required: false
+          description: Comma-separated list of devices to filter schedules by.
       responses:
         '200':
           description: A list of schedules
@@ -598,26 +606,39 @@ paths:
                           type: integer
                         schedule:
                           type: string
-                        custom_date:
+                        customDate:
                           type: string
                           format: date-time
+                          nullable: true
                         devices:
                           type: array
                           items:
                             type: string
-                        day_of_week:
+                        dayOfWeek:
                           type: string
+                          nullable: true
                         hour:
                           type: integer
+                          nullable: true
                         minute:
                           type: integer
+                          nullable: true
                         day:
                           type: integer
                           nullable: true
-        '400':
-          description: Invalid input
+                        next_run_time:
+                          type: string
+                          format: date-time
+                          nullable: true
         '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
   /delete_schedule:
     delete:
       summary: delete schedule for devices
