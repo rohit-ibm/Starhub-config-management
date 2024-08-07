@@ -46,14 +46,15 @@ cur.execute('''
 
 cur.execute('''
             CREATE TABLE IF NOT EXISTS schedules (
-                id TEXT PRIMARY KEY,
-                schedule TEXT DEFAULT 'NOT CONFIGURED',
+                id TEXT DEFAULT 'NOT CONFIGURED',
+                schedule TEXT CHECK(schedule IN ('daily', 'weekly', 'monthly', 'custom')) DEFAULT 'NOT CONFIGURED',
                 custom_date TEXT DEFAULT 'NOT CONFIGURED',
                 devices TEXT DEFAULT 'NOT CONFIGURED',
-                day_of_week TEXT DEFAULT 'NOT CONFIGURED',
-                hour TEXT DEFAULT 'NOT CONFIGURED',
-                minute TEXT DEFAULT 'NOT CONFIGURED',
-                day TEXT DEFAULT 'NOT CONFIGURED',
+                day_of_week TEXT CHECK(day_of_week IN ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'null')) DEFAULT 'NOT CONFIGURED',
+                hour TEXT CHECK(hour BETWEEN '0' AND '23') DEFAULT 'NOT CONFIGURED',
+                minute TEXT CHECK(minute BETWEEN '0' AND '59') DEFAULT 'NOT CONFIGURED',
+                day TEXT CHECK(day BETWEEN '1' AND '31' OR day = 'null') DEFAULT 'NOT CONFIGURED',
+                next_run_time TEXT DEFAULT 'NOT CONFIGURED',
                 UNIQUE(schedule, custom_date, devices, day_of_week, hour, minute, day)
             )
         ''')

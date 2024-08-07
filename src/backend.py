@@ -16,6 +16,7 @@ import json
 import re
 from datetime import datetime
 
+
 def create_app(namespace):
     app = Flask(__name__)
     CORS(app) # Enable CORS for the Flask app
@@ -49,7 +50,7 @@ def create_app(namespace):
     api.add_resource(device_groups, '/device_groups' , resource_class_kwargs={'namespace': namespace})
     api.add_resource(update_device_group, '/update_device_groups' , resource_class_kwargs={'namespace': namespace})
     api.add_resource(DeleteDevices, '/delete_devices')
-    api.add_resource(schedule_backup, '/set_schedule')
+    api.add_resource(schedule_backup, '/schedules')
     api.add_resource(delete_schedule_backup, '/delete_schedule')
 
     return app
@@ -1087,13 +1088,38 @@ class update_device_group(Resource):
 class schedule_backup(Resource):
 
     def get(self):
-        conn = sqlite3.connect('/app/db/config.db')
-        cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM schedules')
-        schedules = cursor.fetchall()
+        devices_filter = request.args.get('devices')
 
-        conn.close()
+        try:
+            conn = sqlite3.connect('/app/db/config.db')
+            cursor = conn.cursor()
+
+            if devices_filter:
+                devices_filter_list = devices_filter.split(',')
+                query = 'SELECT * FROM schedules WHERE '
+                query_conditions = []
+                query_params = []
+
+                for device in devices_filter_list:
+                    query_conditions.append('devices LIKE ?')
+                    query_params.append(f'%{device}%')
+
+                query += ' OR '.join(query_conditions)
+
+                cursor.execute(query, query_params)
+            else:
+                cursor.execute('SELECT * FROM schedules')
+
+            schedules = cursor.fetchall()
+
+        except sqlite3.Error as e:
+            logger.error(f"Database error: {e}")
+            return jsonify({"error": "Database error occurred"}), 500
+
+        finally:
+            if conn:
+                conn.close()
 
         # Convert to a list of dictionaries
         schedule_list = []
@@ -1101,12 +1127,13 @@ class schedule_backup(Resource):
             schedule_dict = {
                 "id": schedule[0],
                 "schedule": schedule[1],
-                "custom_date": schedule[2],
-                "devices": schedule[3].split(','),
-                "day_of_week": schedule[4],
-                "hour": schedule[5],
-                "minute": schedule[6],
-                "day": schedule[7]
+                "customDate": schedule[2] if schedule[2] is not None else "null",
+                "devices": schedule[3].split(',') if schedule[3] else [],
+                "dayOfWeek": schedule[4] if schedule[4] is not None else "null",
+                "hour": schedule[5] if schedule[5] is not None else "null",
+                "minute": schedule[6] if schedule[6] is not None else "null",
+                "day": schedule[7] if schedule[7] is not None else "null",
+                "next_run_time": schedule[8] if schedule[8] is not None else "null"
             }
             schedule_list.append(schedule_dict)
 
@@ -1114,39 +1141,46 @@ class schedule_backup(Resource):
 
     def post(self):
         data = request.json
-        schedule = data.get('schedule')
-        custom_date = data.get('customDate')
-        devices = data.get('devices')
+        schedule = data.get('schedule', 'null')
+        custom_date = data.get('customDate', 'null')
+        devices = data.get('devices', 'null')
         day_of_week = data.get('dayOfWeek', 'null')
         hour = data.get('hour', 'null')
         minute = data.get('minute', 'null')
         day = data.get('day', 'null')
 
         logger.debug(data)
+        try:
+            conn = sqlite3.connect('/app/db/config.db')
+            cursor = conn.cursor()
+            cursor.execute('''SELECT COUNT(*) FROM schedules WHERE
+                            schedule = ? AND
+                            (custom_date = ? OR custom_date IS NULL AND ? IS NULL) AND
+                            devices = ? AND
+                            day_of_week = ? AND
+                            hour = ? AND
+                            minute = ? AND
+                            day = ?''',
+                        (schedule, custom_date, custom_date, ','.join(devices), day_of_week, hour, minute, day))
+            count = cursor.fetchone()[0]
+            
+            if count > 0:
+                conn.close()
+                return jsonify({"message": "Duplicate schedule detected"})
+            cursor.execute('''INSERT INTO schedules (schedule, custom_date, devices, day_of_week, hour, minute, day)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                        (schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day))
+            conn.commit()
 
-        conn = sqlite3.connect('/app/db/config.db')
-        cursor = conn.cursor()
-        cursor.execute('''SELECT COUNT(*) FROM schedules WHERE
-                        schedule = ? AND
-                        (custom_date = ? OR custom_date IS NULL AND ? IS NULL) AND
-                        devices = ? AND
-                        day_of_week = ? AND
-                        hour = ? AND
-                        minute = ? AND
-                        day = ?''',
-                       (schedule, custom_date, custom_date, ','.join(devices), day_of_week, hour, minute, day))
-        count = cursor.fetchone()[0]
+            return jsonify({"message": "Schedule request stored successfully"})
         
-        if count > 0:
+        except sqlite3.IntegrityError as e:
+            response = jsonify({'error': str(e)})
+            response.status_code = 400
+            logger.debug(response)
+            return response
+        finally:
             conn.close()
-            return jsonify({"message": "Duplicate schedule detected"})
-        cursor.execute('''INSERT INTO schedules (schedule, custom_date, devices, day_of_week, hour, minute, day)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day))
-        conn.commit()
-        conn.close()
-
-        return jsonify({"message": "Schedule request stored successfully"})
 
 
 
@@ -1157,32 +1191,48 @@ class delete_schedule_backup(Resource):
         schedule = data.get('schedule')
         custom_date = data.get('customDate')
         devices = data.get('devices')
-        day_of_week = data.get('dayOfWeek', 'null')
-        hour = data.get('hour', 'null')
-        minute = data.get('minute', 'null')
-        day = data.get('day', 'null')
+        day_of_week = data.get('dayOfWeek')
+        hour = data.get('hour')
+        minute = data.get('minute')
+        day = data.get('day')
 
         logger.debug(data)
+        try:
+            conn = sqlite3.connect('/app/db/config.db')
+            cursor = conn.cursor()
 
-        conn = sqlite3.connect('/app/db/config.db')
-        cursor = conn.cursor()
+            query = '''DELETE FROM schedules WHERE
+                schedule = ? AND
+                (custom_date IS ? OR custom_date IS NULL) AND
+                devices = ? AND
+                day_of_week IS ? AND
+                hour IS ? AND
+                minute IS ? AND
+                day IS ?'''
 
-        cursor.execute('''DELETE FROM schedules WHERE
-                        schedule = ? AND
-                        (custom_date = ? OR custom_date IS NULL AND ? IS NULL) AND
-                        devices = ? AND
-                        day_of_week = ? AND
-                        hour = ? AND
-                        minute = ? AND
-                        day = ?''',
-                       (schedule, custom_date, custom_date, ','.join(devices), day_of_week, hour, minute, day))
-        
-        if cursor.rowcount == 0:
+                    # Execute the query
+            cursor.execute(query, (
+                schedule,
+                custom_date,
+                ','.join(devices),
+                day_of_week,
+                hour,
+                minute,
+                day
+            ))
+
+            # Check if any row was affected
+            if cursor.rowcount == 0:
+                conn.close()
+                return jsonify({"message": "Schedule not found"})
+
+            conn.commit()
+
+        except sqlite3.IntegrityError as e:
+            response = jsonify({'error': str(e)})
+            response.status_code = 400
+        finally:
             conn.close()
-            return jsonify({"message": "Schedule not found"})
-
-        conn.commit()
-        conn.close()
 
         return jsonify({"message": "Schedule deleted successfully"})
 

@@ -7,9 +7,10 @@ from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
-from datetime import datetime
+from datetime import datetime , timedelta
 import atexit
 from logger_config import logger
+import pytz
 
 class BackupScheduler:
     def __init__(self):
@@ -33,53 +34,71 @@ class BackupScheduler:
         conn.close()
         logger.debug(f"Schedule with ID {job_id} deleted from database.")
 
-    def set_schedule(self, schedule, custom_date, devices, day_of_week='mon', hour=15, minute=0, day=1):
+    def set_schedule(self, schedule, custom_date, devices, day_of_week, hour, minute, day , timezone_str='UTC'):
         # Remove old jobs with the same parameters
         # logger.debug("Initial Jobs in Scheduler:")
         # jobs = self.scheduler.get_jobs()
         # # logger.debug(jobs)
         # for job in jobs:
         #     logger.debug(f"Job ID: {job.id}, Args: {job.args}, Trigger: {job.trigger}")
+
+        timezone = pytz.timezone(timezone_str)
         
         if self.is_duplicate_job(schedule, custom_date, devices, day_of_week, hour, minute, day):
                 # logger.debug("Duplicate job detected. Skipping scheduling.")
                 return f"This is Duplicate scheduling."
         
         job_id = f'backup_job_{datetime.now().timestamp()}'
+        try:
+                job = None
 
-        # print(f"Adding new job with ID: {job_id}")
-        if schedule == 'daily':
-            self.scheduler.add_job(self.backup_job, 'interval', days=1, id=job_id, args=[devices])
-        elif schedule == 'weekly':
-            self.scheduler.add_job(self.backup_job, 'cron', day_of_week=day_of_week, hour=hour, minute=minute, id=job_id, args=[devices])
-            print(self.scheduler.get_jobs())
-        elif schedule == 'monthly':
-            self.scheduler.add_job(self.backup_job, 'cron', day=day, hour=hour, minute=minute, id=job_id, args=[devices])
-        elif schedule == 'custom' and custom_date:
-            run_date = datetime.strptime(custom_date, '%Y-%m-%d %H:%M:%S')
-            self.scheduler.add_job(self.backup_job, 'date', run_date=run_date, id=job_id, args=[devices])
+                # Add job to scheduler based on schedule type
+                if schedule == 'daily':
+                    job = self.scheduler.add_job(self.backup_job, 'interval', days=1, id=job_id, args=[devices])
+                elif schedule == 'weekly':
+                    job = self.scheduler.add_job(self.backup_job, 'cron', day_of_week=day_of_week, hour=hour, minute=minute, id=job_id, args=[devices])
+                elif schedule == 'monthly':
+                    job = self.scheduler.add_job(self.backup_job, 'cron', day=day, hour=hour, minute=minute, id=job_id, args=[devices])
+                elif schedule == 'custom' and custom_date:
+                    run_date = timezone.localize(datetime.strptime(custom_date, '%Y-%m-%d %H:%M:%S'))
+                    job = self.scheduler.add_job(self.backup_job, 'date', run_date=run_date, id=job_id, args=[devices])
 
-        conn = sqlite3.connect('/scheduler/db/config.db')
-        cursor = conn.cursor()
-        cursor.execute('''SELECT rowid FROM schedules WHERE schedule = ? AND custom_date = ? AND devices = ? AND 
-                            day_of_week = ? AND hour = ? AND minute = ? AND day = ?''',
-                        (schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day))
-        existing_row = cursor.fetchone()
+                # If job is successfully added, get the next run time and update DB
+                if job:
+                    next_run_time = job.next_run_time
+                    self.update_or_insert_schedule_in_db(job_id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time)
 
-        if existing_row:
-            # If the schedule exists, update the job_id
-            cursor.execute('UPDATE schedules SET id = ? WHERE rowid = ?', (job_id, existing_row[0]))
-        else:
-            # If the schedule doesn't exist, insert a new row
-            cursor.execute('''INSERT INTO schedules (id, schedule, custom_date, devices, day_of_week, hour, minute, day)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                            (job_id, schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day))
-        conn.commit()
-        conn.close()
+        # Start scheduler if not already running
+                if not self.scheduler.running:
+                    self.scheduler.start()
 
-        if not self.scheduler.running:
-            self.scheduler.start()
-         
+        except Exception as e:
+            logger.error(f"Failed to schedule job: {e}")
+            return "Failed to schedule job due to an error."
+
+    def update_or_insert_schedule_in_db(self, job_id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time):
+
+        try:
+            conn = sqlite3.connect('/scheduler/db/config.db')
+            cursor = conn.cursor()
+
+            cursor.execute('''SELECT rowid FROM schedules WHERE schedule = ? AND custom_date = ? AND devices = ? AND 
+                                day_of_week = ? AND hour = ? AND minute = ? AND day = ?''',
+                            (schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day))
+            existing_row = cursor.fetchone()
+
+            if existing_row:
+                cursor.execute('UPDATE schedules SET id = ?, next_run_time = ? WHERE rowid = ?', 
+                            (job_id, next_run_time.strftime('%Y-%m-%d %H:%M:%S'), existing_row[0]))
+            else:
+                cursor.execute('''INSERT INTO schedules (id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                                (job_id, schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day, next_run_time.strftime('%Y-%m-%d %H:%M:%S')))
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Database error: {e}")
+        finally:
+            conn.close()        
     
     def is_duplicate_job(self, schedule, custom_date, devices, day_of_week, hour, minute, day):
 
@@ -150,13 +169,14 @@ class BackupScheduler:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM schedules')
             rows = cursor.fetchall()
-            for row in rows:
-                schedule, custom_date, devices, day_of_week, hour, minute, day = row[1:]
-                devices = devices.split(',')
-                self.set_schedule(schedule, custom_date, devices, day_of_week, hour, minute, day)
-                # cursor.execute('DELETE FROM schedules WHERE id = ?', (row[0],))
             conn.commit()
             conn.close()
+            for row in rows:
+                if len(row) == 9:  # Adjust the number based on your table schema
+                    id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time = row
+                    devices = devices.split(',')
+                    self.set_schedule(schedule, custom_date, devices, day_of_week, hour, minute, day)
+                # cursor.execute('DELETE FROM schedules WHERE id = ?', (row[0],))
             time.sleep(30)
 
 
