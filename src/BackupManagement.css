@@ -21,7 +21,8 @@
   margin-bottom: 20px;
 }
 
-.button-container button {
+.button-container button,
+.button-container select {
   margin: 0 10px;
 }
 
@@ -36,6 +37,19 @@
 
 .immediate-button:hover {
   background-color: #0056b3;
+}
+
+.schedule-dropdown {
+  padding: 8px 20px;
+  background-color: #007BFF;
+  color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.schedule-dropdown:hover {
+  background-color: #3fa9de;
 }
 
 .schedule-button {
