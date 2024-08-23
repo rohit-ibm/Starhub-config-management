@@ -12,19 +12,45 @@ import atexit
 from logger_config import logger
 import pytz
 
+local_timezone = pytz.timezone('Asia/Kolkata')
 class BackupScheduler:
     def __init__(self):
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = BackgroundScheduler(timezone = local_timezone)
         self.scheduler.start()
         atexit.register(lambda: self.scheduler.shutdown(wait=False))
         self.scheduler.add_listener(self.job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+        timezone = local_timezone
     
     def job_listener(self, event):
         if event.exception:
             logger.error(f"Job {event.job_id} failed.")
         else:
             logger.info(f"Job {event.job_id} completed successfully.")
-            self.delete_schedule_from_db(event.job_id)
+            job = self.scheduler.get_job(event.job_id)
+            trigger = job.trigger
+
+            if job:
+                trigger = job.trigger
+            # Determine the schedule type based on the trigger type
+            if isinstance(trigger, DateTrigger):
+                schedule_type = 'custom'
+            elif isinstance(trigger, CronTrigger):
+                if trigger.fields[4].name == 'day_of_week':
+                    schedule_type = 'weekly'
+                elif trigger.fields[4].name == 'day':
+                    schedule_type = 'monthly'
+                else:
+                    schedule_type = 'unknown'
+            elif isinstance(trigger, IntervalTrigger):
+                schedule_type = 'daily'
+            else:
+                schedule_type = 'unknown'
+
+            # Perform action based on the schedule type
+            if schedule_type == 'custom':
+                self.delete_schedule_from_db(event.job_id)
+            elif schedule_type in ['weekly', 'monthly']:
+                self.update_next_run_time(event.job_id)
 
     def delete_schedule_from_db(self, job_id):
         conn = sqlite3.connect('/scheduler/db/config.db')
@@ -34,7 +60,20 @@ class BackupScheduler:
         conn.close()
         logger.debug(f"Schedule with ID {job_id} deleted from database.")
 
-    def set_schedule(self, schedule, custom_date, devices, day_of_week, hour, minute, day , timezone_str='UTC'):
+    def update_next_run_time(self, job_id):
+        job = self.scheduler.get_job(job_id)
+        if job:
+            next_run_time = job.next_run_time.strftime('%Y-%m-%d %H:%M:%S')
+            
+            conn = sqlite3.connect('/scheduler/db/config.db')
+            cursor = conn.cursor()
+            cursor.execute('UPDATE schedules SET next_run_time = ? WHERE id = ?', (next_run_time, job_id))
+            conn.commit()
+            conn.close()
+            
+            logger.debug(f"Next run time updated for job ID {job_id} in the database.")
+
+    def set_schedule(self, schedule, custom_date, devices, day_of_week, hour, minute, day):
         # Remove old jobs with the same parameters
         # logger.debug("Initial Jobs in Scheduler:")
         # jobs = self.scheduler.get_jobs()
@@ -42,7 +81,6 @@ class BackupScheduler:
         # for job in jobs:
         #     logger.debug(f"Job ID: {job.id}, Args: {job.args}, Trigger: {job.trigger}")
 
-        timezone = pytz.timezone(timezone_str)
         
         if self.is_duplicate_job(schedule, custom_date, devices, day_of_week, hour, minute, day):
                 # logger.debug("Duplicate job detected. Skipping scheduling.")
@@ -54,13 +92,16 @@ class BackupScheduler:
 
                 # Add job to scheduler based on schedule type
                 if schedule == 'daily':
-                    job = self.scheduler.add_job(self.backup_job, 'interval', days=1, id=job_id, args=[devices])
+                    job = self.scheduler.add_job(self.backup_job, 'interval', days=1, id=job_id, args=[devices] )
                 elif schedule == 'weekly':
-                    job = self.scheduler.add_job(self.backup_job, 'cron', day_of_week=day_of_week, hour=hour, minute=minute, id=job_id, args=[devices])
+                    trigger = CronTrigger(day_of_week=day_of_week, hour=hour, minute=minute, timezone=local_timezone)
+                    job = self.scheduler.add_job(self.backup_job, trigger, id=job_id, args=[devices])
                 elif schedule == 'monthly':
-                    job = self.scheduler.add_job(self.backup_job, 'cron', day=day, hour=hour, minute=minute, id=job_id, args=[devices])
+                    trigger = CronTrigger(day=day, hour=hour, minute=minute, timezone=local_timezone)
+                    job = self.scheduler.add_job(self.backup_job, trigger, id=job_id, args=[devices])
                 elif schedule == 'custom' and custom_date:
-                    run_date = timezone.localize(datetime.strptime(custom_date, '%Y-%m-%d %H:%M:%S'))
+                    naive_run_date = datetime.strptime(custom_date, '%Y-%m-%d %H:%M:%S')
+                    run_date = local_timezone.localize(naive_run_date)
                     job = self.scheduler.add_job(self.backup_job, 'date', run_date=run_date, id=job_id, args=[devices])
 
                 # If job is successfully added, get the next run time and update DB
@@ -98,7 +139,8 @@ class BackupScheduler:
         except sqlite3.Error as e:
             logger.error(f"Database error: {e}")
         finally:
-            conn.close()        
+            conn.close() 
+    
     
     def is_duplicate_job(self, schedule, custom_date, devices, day_of_week, hour, minute, day):
 
@@ -177,7 +219,7 @@ class BackupScheduler:
                     devices = devices.split(',')
                     self.set_schedule(schedule, custom_date, devices, day_of_week, hour, minute, day)
                 # cursor.execute('DELETE FROM schedules WHERE id = ?', (row[0],))
-            time.sleep(30)
+            time.sleep(300)
 
 
 def main():

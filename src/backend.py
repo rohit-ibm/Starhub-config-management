@@ -15,6 +15,7 @@ import subprocess
 import json
 import re
 from datetime import datetime
+import pytz
 
 
 def create_app(namespace):
@@ -43,6 +44,7 @@ def create_app(namespace):
         return jsonify(swagger_spec)
     
     # Add the resource to the API
+    api.add_resource(health_check, '/health')
     api.add_resource(get_token, '/get_token',resource_class_kwargs={'namespace': namespace})
     api.add_resource(inventory_management, '/inventory_data', '/inventory_data/devicegroups', '/inventory_data/devices', '/inventory_data/schedule_backup')
     api.add_resource(file_management, '/config_files', '/config_files/list', '/config_files/view', '/config_files/download', '/config_files/downloadall' )
@@ -54,6 +56,13 @@ def create_app(namespace):
     api.add_resource(delete_schedule_backup, '/delete_schedule')
 
     return app
+
+
+class health_check(Resource):
+    def get(self):
+        response = jsonify(status="healthy")
+        response.status_code = 200
+        return response
 
 class get_token(Resource):
 
@@ -158,6 +167,7 @@ class inventory_management(Resource):
         except sqlite3.IntegrityError as e:
             response = jsonify({'error': str(e)})
             response.status_code = 400
+            return response
         finally:
             conn.close()
         return response
@@ -619,23 +629,37 @@ class backup_management(Resource):
         logger.debug(f'Playbook_result {playbook_output}')
         # Example structured output from the playbook (assuming JSON format for simplicity)
         # Regular expression to find JSON objects in the output
+
+        source_timezone_str = 'UTC'
+        target_timezone_str = 'Asia/Kolkata'  # Replace with your target timezone
+
+        source_timezone = pytz.timezone(source_timezone_str)
+        target_timezone = pytz.timezone(target_timezone_str)
+
+
         successful_pattern = re.compile(r'\{\s*"msg":\s*\{.*?\}\s*\}', re.DOTALL)
-        json_matches = successful_pattern.findall(playbook_output)
+        successful_devices = successful_pattern.findall(playbook_output)
+        logger.debug(f'successful_devices{successful_devices}')
+        
 
         successful_devices_info = []
 
-        for match in json_matches:
+        for match in successful_devices:
             try:
                 # Parse the JSON match
                 parsed_json = json.loads(match)
                 backup_details = parsed_json['msg']
-                datetime_str = backup_details.get('datetime', datetime.now().isoformat())
-                parsed_datetime = datetime.fromisoformat(datetime_str)
-                readable_datetime = parsed_datetime.strftime('%A, %B %d, %Y %I:%M %p')
+                datetime_str = datetime.now().isoformat()
+                if '.' in datetime_str:
+                    datetime_str = datetime_str.split('.')[0]
+                successful_naive_datetime = datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%S')
+                successful_utc_datetime = source_timezone.localize(successful_naive_datetime)
+                successful_localized_datetime = successful_utc_datetime.astimezone(target_timezone)
+                successful_readable_datetime = successful_localized_datetime.strftime('%A, %B %d, %Y %I:%M %p')
                 successful_devices_info.append({
                     'hostname': backup_details.get('hostname', 'Unknown'),
                     'filename': backup_details.get('filename', 'Unknown'),
-                    'datetime': readable_datetime,
+                    'datetime': successful_readable_datetime,
                     'filepath': backup_details.get('filepath', 'Unknown'),
                     'backup_status': 'success'
                 })
@@ -646,12 +670,18 @@ class backup_management(Resource):
 
         failed_pattern = re.compile(r'fatal: \[([^]]+)\]: FAILED!')
         failed_devices = failed_pattern.findall(playbook_output)
+        logger.debug(f'failed_devices{failed_devices}')
 
         failed_devices_info = []
         for device_name in failed_devices:
             failed_datetime_str = datetime.now().isoformat()
-            failed_parsed_datetime = datetime.fromisoformat(failed_datetime_str)
-            failed_readable_datetime = failed_parsed_datetime.strftime('%A, %B %d, %Y %I:%M %p')
+            logger.debug(failed_datetime_str)
+            if '.' in failed_datetime_str:
+                failed_datetime_str = failed_datetime_str.split('.')[0]
+            failed_naive_datetime = datetime.strptime(failed_datetime_str, '%Y-%m-%dT%H:%M:%S')
+            failed_utc_datetime = source_timezone.localize(failed_naive_datetime)
+            failed_localized_datetime = failed_utc_datetime.astimezone(target_timezone)
+            failed_readable_datetime = failed_localized_datetime.strftime('%A, %B %d, %Y %I:%M %p')
             failed_devices_info.append({
                 'hostname': device_name,
                 'filename': '',
@@ -720,6 +750,7 @@ class backup_management(Resource):
             # response.status_code = 201
             self.sevone_metadata_update(successful_config_files_data)
 
+        if failed_pattern:
             file_management_instance = file_management()
             with app.app_context():
                 with app.test_request_context(json=failed_config_files_data['devices']):

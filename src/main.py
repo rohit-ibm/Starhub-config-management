@@ -51,9 +51,9 @@ cur.execute('''
                 custom_date TEXT DEFAULT 'NOT CONFIGURED',
                 devices TEXT DEFAULT 'NOT CONFIGURED',
                 day_of_week TEXT CHECK(day_of_week IN ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun', 'null')) DEFAULT 'NOT CONFIGURED',
-                hour TEXT CHECK(hour BETWEEN '0' AND '23') DEFAULT 'NOT CONFIGURED',
-                minute TEXT CHECK(minute BETWEEN '0' AND '59') DEFAULT 'NOT CONFIGURED',
-                day TEXT CHECK(day BETWEEN '1' AND '31' OR day = 'null') DEFAULT 'NOT CONFIGURED',
+                hour TEXT DEFAULT 'null',
+                minute TEXT  DEFAULT 'null',
+                day TEXT  DEFAULT 'null',
                 next_run_time TEXT DEFAULT 'NOT CONFIGURED',
                 UNIQUE(schedule, custom_date, devices, day_of_week, hour, minute, day)
             )
