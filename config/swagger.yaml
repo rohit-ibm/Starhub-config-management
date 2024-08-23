@@ -6,6 +6,25 @@ info:
 servers:
   - url: http://9.46.112.167:5000
 paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns the health status of the service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Healthy"
+        '500':
+          description: Service is unhealthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Unhealthy"
   /get_token:
     get:
       summary: Get authentication token for sevone apis.
