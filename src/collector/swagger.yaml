@@ -1,0 +1,82 @@
+openapi: 3.0.0
+info:
+  title: Config management swagger for backend APIs
+  description: This is swagger for documenation of all backend APIs being used for config management tool.
+  version: 1.0.0
+servers:
+  - url: http://9.46.66.96:9000
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns the health status of the service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Healthy"
+        '500':
+          description: Service is unhealthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Unhealthy"
+  /backup:
+    post:
+      summary: Get the backup of devices
+      requestBody:
+        description: It collects backup of devices and store on predifined directory.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inventory:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      devicename:
+                        type: string
+                      ipaddress:
+                        type: string
+                      username:
+                        type: string
+                      password:
+                        type: string
+      responses:
+        201:
+          description: Successfully collected the inventory
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Backup collected successfully"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid input"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Internal server error"
