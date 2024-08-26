@@ -1,0 +1,16 @@
+version: '2.2'
+
+services:
+  web:
+    container_name: ciscocollector
+    restart: always
+    image: ciscocollector:0.1
+    network_mode: "host"
+    ports:
+      - "9000:9000"
+    env_file:
+      - /home/config_mgmt_collector/config/.env
+    volumes:
+      - /home/config_mgmt_collector/src:/ciscocollector:rw
+      - /home/config_mgmt_collector/config:/ciscocollector/config:rw
+      - /home/config_mgmt_collector/backups:/backups:rw

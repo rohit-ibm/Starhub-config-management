@@ -405,61 +405,34 @@ paths:
           description: Invalid input
         '404':
           description: hostname not found
-  /post_backup:
+  /backup_status:
     post:
-      summary: Get the backup of devices
+      summary: Add config files
       requestBody:
-        description: It collects backup of devices and store on predifined directory.
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                inventory:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      devicename:
-                        type: string
-                      ipaddress:
-                        type: string
-                      username:
-                        type: string
-                      password:
-                        type: string
+              type: array
+              items:
+                type: object
+                properties:
+                  hostname:
+                    type: string
+                  filename:
+                    type: string
+                  datetime:
+                    type: string
+                  backup_status:
+                    type: string
+                  filepath:
+                    type: string
       responses:
-        201:
-          description: Successfully collected the inventory
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Backup collected successfully"
-        400:
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Invalid input"
-        500:
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Internal server error"
+        '201':
+          description: Config files added successfully
+        '400':
+          description: Invalid input
+    
   /device_groups:
     get:
       summary: Get all devices of device groups from SEVONE
@@ -707,3 +680,56 @@ paths:
                     example: Deleted Schedule set successfully
         '400':
           description: Invalid input
+  /configdata:
+    post:
+      summary: Update multiple variables in the config.json file
+      description: This endpoint allows you to update or add multiple variables in the `config.json` file.
+      requestBody:
+        description: A JSON object containing key-value pairs of variables and their corresponding values.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+              example:
+                config_key1: "config_value1"
+                config_key2: "config_value2"
+      responses:
+        '200':
+          description: Successfully updated the config.json file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  updated_config_variables:
+                    type: integer
+                    example: 2
+                  message:
+                    type: string
+                    example: "2 variable(s) were updated or added to the config.json file."
+        '400':
+          description: Bad request, invalid input format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input format. Expected a JSON object with variable-value pairs."
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "An error occurred while updating the config.json file."
