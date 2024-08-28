@@ -26,31 +26,18 @@ class BackupScheduler:
             logger.error(f"Job {event.job_id} failed.")
         else:
             logger.info(f"Job {event.job_id} completed successfully.")
-            job = self.scheduler.get_job(event.job_id)
-            trigger = job.trigger
-
-            if job:
-                trigger = job.trigger
-            # Determine the schedule type based on the trigger type
-            if isinstance(trigger, DateTrigger):
-                schedule_type = 'custom'
-            elif isinstance(trigger, CronTrigger):
-                if trigger.fields[4].name == 'day_of_week':
-                    schedule_type = 'weekly'
-                elif trigger.fields[4].name == 'day':
-                    schedule_type = 'monthly'
-                else:
-                    schedule_type = 'unknown'
-            elif isinstance(trigger, IntervalTrigger):
-                schedule_type = 'daily'
-            else:
-                schedule_type = 'unknown'
-
-            # Perform action based on the schedule type
-            if schedule_type == 'custom':
-                self.delete_schedule_from_db(event.job_id)
-            elif schedule_type in ['weekly', 'monthly']:
-                self.update_next_run_time(event.job_id)
+            job_id = event.job_id
+            
+            conn = sqlite3.connect('/scheduler/db/config.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT schedule FROM schedules WHERE id = ?', (job_id,))
+            schedule = cursor.fetchone()
+            conn.close()
+            
+            if schedule and schedule[0] == 'custom':
+                self.delete_schedule_from_db(job_id)
+            elif schedule and schedule[0] in ['weekly', 'monthly']:
+                self.update_next_run_time(job_id)
 
     def delete_schedule_from_db(self, job_id):
         conn = sqlite3.connect('/scheduler/db/config.db')
@@ -188,7 +175,7 @@ class BackupScheduler:
         return False
     
     def backup_job(self, devices):
-        url_post = "http://9.46.112.167:5000/post_backup"
+        url_post = "http://9.46.66.96:9000/backup"
         for device in devices:
             logger.debug(device)
             response_get = requests.get(f'http://9.46.112.167:5000/inventory_data/devices?devices={device}')
@@ -219,7 +206,7 @@ class BackupScheduler:
                     devices = devices.split(',')
                     self.set_schedule(schedule, custom_date, devices, day_of_week, hour, minute, day)
                 # cursor.execute('DELETE FROM schedules WHERE id = ?', (row[0],))
-            time.sleep(300)
+            time.sleep(60)
 
 
 def main():
