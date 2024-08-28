@@ -1,4 +1,3 @@
-import sqlite3
 import requests
 import yaml
 import os
@@ -9,6 +8,8 @@ from flask_cors import CORS  # Import the CORS package
 from flask_swagger_ui import get_swaggerui_blueprint
 import subprocess
 import json
+import zipfile
+import io
 import re
 from datetime import datetime
 import pytz
@@ -40,6 +41,7 @@ def create_app():
         return jsonify(swagger_spec)
     
     api.add_resource(backup_management, '/backup')
+    api.add_resource(file_management, '/config_files/list', '/config_files/view', '/config_files/download', '/config_files/downloadall' )
 
 
     return app
@@ -138,14 +140,14 @@ class backup_management(Resource):
                     'filename': backup_details.get('filename', 'Unknown'),
                     'datetime': successful_readable_datetime,
                     'filepath': backup_details.get('filepath', 'Unknown'),
-                    'backup_status': 'success'
+                    'backup_status': 'Success'
                 })
                 devices_info.append({
                     'hostname': backup_details.get('hostname', 'Unknown'),
                     'filename': backup_details.get('filename', 'Unknown'),
                     'datetime': successful_readable_datetime,
                     'filepath': backup_details.get('filepath', 'Unknown'),
-                    'backup_status': 'success'
+                    'backup_status': 'Success'
                 })
 
             except json.JSONDecodeError:
@@ -171,14 +173,14 @@ class backup_management(Resource):
                 'filename': '',
                 'datetime': failed_readable_datetime,
                 'filepath': '',
-                'backup_status': 'failed'
+                'backup_status': 'Failed'
             })
             devices_info.append({
                 'hostname': device_name,
                 'filename': '',
                 'datetime': failed_readable_datetime,
                 'filepath': '',
-                'backup_status': 'failed'
+                'backup_status': 'Failed'
             })
 
         response = {
@@ -216,6 +218,87 @@ class backup_management(Resource):
         except requests.RequestException as e:
             logger.error(f"Error during API call: {e}")
             return f"Error during API call: {e}"
+        
+class file_management(Resource):
+
+    def get(self):
+
+        if request.path.endswith('/list'):
+            return self.list_configfiles()
+        
+        elif request.path.endswith('/view'):
+            return self.view_configfiles()
+        
+        elif request.path.endswith('/download'):
+            return self.download_configfiles()
+        
+        elif request.path.endswith('/downloadall'):
+            return self.download_all_files()
+
+    def list_configfiles(self):
+
+        hostname = request.args.get('hostname')
+        BACKUP_DIR = "/backups"
+        host_backup_dir = os.path.join(BACKUP_DIR, hostname)
+        if not os.path.exists(host_backup_dir):
+            abort(404, description="File not found")
+        
+        backups = []
+        for file in os.listdir(host_backup_dir):
+            file_path = os.path.join(host_backup_dir, file)
+            backups.append({
+                "hostname": hostname,
+                "filename": file,
+                "filepath": file_path.replace(BACKUP_DIR, "/backups"),  # Adjust filepath for serving
+                "last_modified": self.format_iso_time(os.path.getmtime(file_path))
+            })
+        return jsonify(backups)        
+    
+    def view_configfiles(self):
+        hostname = request.args.get('hostname')
+        filename = request.args.get('filename')
+        BACKUP_DIR = "/backups"
+        file_path = os.path.join(BACKUP_DIR, hostname, filename)
+        if not os.path.exists(file_path):
+            abort(404, description="File not found")
+
+        try:
+            with open(file_path, 'r') as file:
+                content = file.read()
+            return Response(content, mimetype='text/plain')
+        except Exception as e:
+            abort(500, description=str(e))
+    
+    def format_iso_time(self, epoch_time):
+        return datetime.fromtimestamp(epoch_time).isoformat() + 'Z'
+    
+    def download_configfiles(self):
+        hostname = request.args.get('hostname')
+        filename = request.args.get('filename')
+        BACKUP_DIR = "/backups"
+        file_path = os.path.join(BACKUP_DIR, hostname)
+        try:
+            return send_from_directory(file_path, filename, as_attachment=True)
+        except Exception as e:
+            abort(500, description=str(e))
+    
+    def download_all_files(self):
+        hostname = request.args.get('hostname')
+        filename = request.args.get('filename')
+        BACKUP_DIR = "/backups"
+        backup_dir = os.path.join(BACKUP_DIR, hostname)
+        try:
+            memory_file = io.BytesIO()
+            with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+                for root, dirs, files in os.walk(backup_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, BACKUP_DIR)
+                        zf.write(file_path, arcname=arcname)
+            memory_file.seek(0)
+            return send_file(memory_file, download_name=f'{hostname}_backups.zip', as_attachment=True)
+        except Exception as e:
+            abort(500, description=str(e))
                 
 
 

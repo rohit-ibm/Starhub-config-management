@@ -733,3 +733,20 @@ paths:
                   error:
                     type: string
                     example: "An error occurred while updating the config.json file."
+  /next_run_time:
+    get:
+      summary: Get the latest next run times for all devices
+      description: Returns a list of devices with their latest next run time.
+      responses:
+        '200':
+          description: A JSON object where each key is a device and the value is its latest next run time.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                  format: date-time
+                  example: "2024-08-01 12:00:00"
+        '500':
+          description: Server error

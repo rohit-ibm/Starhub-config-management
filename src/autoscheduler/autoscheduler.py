@@ -12,7 +12,7 @@ import os
 def call_run_playbook_api():
 
     url_get = "http://9.46.112.167:5000/inventory_data/devices"
-    url_post = "http://9.46.112.167:5000/post_backup"
+    url_post = "http://9.46.66.96:9000/backup"
 
     try:
         response_get = requests.get(url_get)
@@ -71,9 +71,9 @@ def call_device_group_api():
 
 def schedule_daily_job():
     # Schedule the API call to run every 5 minutes
-    schedule.every(2).minutes.do(call_device_group_api)
+    schedule.every(60).minutes.do(call_device_group_api)
     # Schedule the API call to run daily at a specific time, e.g., 2:00 AM
-    schedule.every().day.at("02:00").do(call_run_playbook_api)
+    schedule.every().day.at("13:15").do(call_run_playbook_api)
     # schedule.every().day.at("01:00").do(call_device_group_api)
 
     while True:

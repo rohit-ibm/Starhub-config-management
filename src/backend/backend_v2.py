@@ -55,6 +55,7 @@ def create_app(namespace):
     api.add_resource(schedule_backup, '/schedules')
     api.add_resource(delete_schedule_backup, '/delete_schedule')
     api.add_resource(update_configfile, '/configdata')
+    api.add_resource(next_run_time, '/next_run_time')
 
     return app
 
@@ -488,7 +489,7 @@ class file_management(Resource):
             abort(500, description=str(e))
 
 
-# Configfiles table entries
+    # Configfiles table entries
 
     def post(self):
 
@@ -1105,7 +1106,7 @@ class update_configfile(Resource):
         except Exception as e:
             return jsonify({"error": str(e)})
 
-    def update_config_file(self,variables_dict, config_file='/home/adigade101/config-mgmt/config/config.json'):
+    def update_config_file(self,variables_dict, config_file='/app/config/config.json'):
 
         
         if os.path.exists(config_file):
@@ -1125,3 +1126,32 @@ class update_configfile(Resource):
         print(key)
             
         return len(variables_dict)
+
+class next_run_time(Resource):
+
+    def get(self):
+
+        conn = sqlite3.connect('/app/db/config.db')
+        cursor = conn.cursor()
+
+        # Fetch all rows
+        query = '''
+        SELECT devices, next_run_time FROM schedules;
+        '''
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        conn.close()
+
+        # Process the rows in Python
+        device_times = {}
+
+        for row in rows:
+            devices = row[0].split(',')
+            next_run_time = row[1]
+
+            for device in devices:
+                device = device.strip()
+                if device not in device_times or device_times[device] < next_run_time:
+                    device_times[device] = next_run_time
+
+        return device_times
