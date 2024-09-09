@@ -1,0 +1,88 @@
+- name: Backup and Copy Configurations for Network Devices and Linux Hosts
+  hosts: network_devices, linux_hosts
+  gather_facts: no
+  connection: network_cli
+  tasks:
+    - name: Get Current Date and Time
+      command: date -u +"%Y-%m-%dT%H-%M-%SZ"
+      register: current_datetime
+
+    - name: Ensure backup directory exists on the Ansible control node
+      file:
+        path: "/backups/{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+
+    # Cisco IOS devices
+    - name: Config Backup for Cisco IOS
+      when: ansible_network_os == 'ios'
+      ios_config:
+        backup: yes
+        backup_options:
+          dir_path: "/backups/{{ inventory_hostname }}"
+      register: config_output
+
+    # Cisco NX-OS devices
+    - name: Config Backup for Cisco NX-OS
+      when: ansible_network_os == 'nxos'
+      nxos_config:
+        backup: yes
+        backup_options:
+          dir_path: "/backups/{{ inventory_hostname }}"
+      register: config_output
+
+    # Arista EOS devices
+    - name: Config Backup for Arista EOS
+      when: ansible_network_os == 'eos'
+      eos_config:
+        backup: yes
+        backup_options:
+          dir_path: "/backups/{{ inventory_hostname }}"
+      register: config_output
+
+    # Juniper Junos devices
+    - name: Config Backup for Juniper Junos
+      when: ansible_network_os == 'junos'
+      junos_config:
+        backup: yes
+        backup_options:
+          dest: "/backups/{{ inventory_hostname }}"
+      register: config_output
+
+    # Palo Alto PAN-OS devices
+    - name: Config Backup for Palo Alto PAN-OS
+      when: ansible_network_os == 'panos'
+      panos_config:
+        backup: yes
+        backup_options:
+          dir_path: "/backups/{{ inventory_hostname }}"
+      register: config_output
+
+    # Linux hosts - Copy /etc configuration files
+    - name: Archive and Backup /etc directory for Linux Hosts
+      when: ansible_network_os == 'linux'
+      command: tar czf /tmp/{{ inventory_hostname }}_config_{{ current_datetime.stdout }}.tar.gz /etc
+      register: linux_backup
+
+    - name: Fetch the backup archive from Linux hosts
+      when: ansible_network_os == 'linux'
+      fetch:
+        src: /tmp/{{ inventory_hostname }}_config_{{ current_datetime.stdout }}.tar.gz
+        dest: "/backups/{{ inventory_hostname }}/"
+        flat: yes
+
+    # Move backup file to sanitized filename (Network Devices)
+    - name: Move backup file to sanitized filename
+      when: ansible_network_os != 'linux'
+      command: mv {{ config_output.backup_path }} /backups/{{ inventory_hostname }}/{{ inventory_hostname }}_config_{{ current_datetime.stdout }}.txt
+      args:
+        removes: "{{ config_output.backup_path }}"
+
+    # Output the details of the backup
+    - name: Output Backup Details
+      debug:
+        msg:
+          hostname: "{{ inventory_hostname }}"
+          filename: "{{ inventory_hostname }}_config_{{ current_datetime.stdout }}.txt"
+          datetime: "{{ current_datetime.stdout }}"
+          filepath: "/backups/{{ inventory_hostname }}/{{ inventory_hostname }}_config_{{ current_datetime.stdout }}.txt"

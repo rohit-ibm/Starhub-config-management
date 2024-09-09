@@ -2,15 +2,46 @@ version: '2.2'
 
 services:
   web:
-    container_name: ciscocollector
+    container_name: backend
     restart: always
-    image: ciscocollector:0.1
+    image: backend:0.5
     network_mode: "host"
     ports:
-      - "9000:9000"
+      - "5000:5000"
     env_file:
-      - /home/config_mgmt_collector/config/.env
+      - /home/config-mgmt/config/.env
     volumes:
-      - /home/config_mgmt_collector/src:/ciscocollector:rw
-      - /home/config_mgmt_collector/config:/ciscocollector/config:rw
-      - /home/config_mgmt_collector/backups:/backups:rw
+      - /home/config-mgmt/src:/app:rw
+      - /home/config-mgmt/src/db:/app/db:rw
+      - /home/config-mgmt/config:/app/config:rw
+      - /home/config-mgmt/backups:/backups:rw
+    healthcheck:
+      test: ["CMD", "busybox", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  scheduler:
+    container_name: scheduler
+    restart: always
+    image: scheduler:0.5
+    depends_on:
+      web:
+        condition: service_healthy
+    env_file:
+      - /home/config-mgmt/config/.env
+    volumes:
+      - /home/config-mgmt/src/db:/scheduler/db:rw
+      - /home/config-mgmt/src/scheduler:/scheduler:rw
+      - /home/config-mgmt/config:/scheduler/config:rw
+
+  autoscheduler:
+    container_name: autoscheduler
+    restart: always
+    image: autoscheduler:0.1
+    env_file:
+      - /home/config-mgmt/config/.env
+    volumes:
+      - /home/config-mgmt/src/autoscheduler:/autoscheduler:rw
+      - /home/config-mgmt/config:/autoscheduler/config:rw

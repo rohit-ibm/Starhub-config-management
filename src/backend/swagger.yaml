@@ -750,3 +750,52 @@ paths:
                   example: "2024-08-01 12:00:00"
         '500':
           description: Server error
+  /update_next_backup_time:
+    post:
+      summary: Update next backup time for devices
+      description: Updates the next_backup_time field for multiple devices in the inventory table.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: A JSON object where each key is a hostname and the value is the corresponding next backup time.
+              example:
+                "SevOne-Lab-EL-Cisco-Router3": "2024-09-15 12:00:00"
+                "SevOne-Lab-EL-Cisco-Router4": "2024-10-01 07:30:00"
+              additionalProperties:
+                type: string
+                format: date-time
+                description: The next scheduled backup time for the device in `YYYY-MM-DD HH:MM:SS` format.
+      responses:
+        '200':
+          description: Successfully updated next backup times.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Next backup times updated successfully"
+        '400':
+          description: Bad Request - Invalid or missing input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request, no data provided"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Database error"

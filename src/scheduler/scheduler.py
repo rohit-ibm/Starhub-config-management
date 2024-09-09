@@ -57,8 +57,18 @@ class BackupScheduler:
             cursor.execute('UPDATE schedules SET next_run_time = ? WHERE id = ?', (next_run_time, job_id))
             conn.commit()
             conn.close()
-            
+            self.update_next_backup_time_inventory_table()
             logger.debug(f"Next run time updated for job ID {job_id} in the database.")
+
+    def update_next_backup_time_inventory_table(self):
+        url_get = "http://9.46.112.167:5000/next_run_time"
+        url_post = "http://9.46.112.167:5000/update_next_run_time"
+        
+        response_get = requests.get(url_get)
+        logger.debug(f"response {response_get.json()}")
+
+        response_post = requests.post(url_post, json=response_get.json())
+        logger.debug(response_post.json())
 
     def set_schedule(self, schedule, custom_date, devices, day_of_week, hour, minute, day):
         # Remove old jobs with the same parameters
@@ -116,13 +126,14 @@ class BackupScheduler:
             existing_row = cursor.fetchone()
 
             if existing_row:
-                cursor.execute('UPDATE schedules SET id = ?, next_run_time = ? WHERE rowid = ?', 
+                cursor.execute('UPDATE schedules SET id = ?, next_backup_time = ? WHERE rowid = ?', 
                             (job_id, next_run_time.strftime('%Y-%m-%d %H:%M:%S'), existing_row[0]))
             else:
-                cursor.execute('''INSERT INTO schedules (id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time)
+                cursor.execute('''INSERT INTO schedules (id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_backup_time)
                                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                                 (job_id, schedule, custom_date, ','.join(devices), day_of_week, hour, minute, day, next_run_time.strftime('%Y-%m-%d %H:%M:%S')))
             conn.commit()
+            self.update_next_backup_time_inventory_table()
         except sqlite3.Error as e:
             logger.error(f"Database error: {e}")
         finally:
@@ -202,7 +213,7 @@ class BackupScheduler:
             conn.close()
             for row in rows:
                 if len(row) == 9:  # Adjust the number based on your table schema
-                    id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_run_time = row
+                    id, schedule, custom_date, devices, day_of_week, hour, minute, day, next_backup_time = row
                     devices = devices.split(',')
                     self.set_schedule(schedule, custom_date, devices, day_of_week, hour, minute, day)
                 # cursor.execute('DELETE FROM schedules WHERE id = ?', (row[0],))

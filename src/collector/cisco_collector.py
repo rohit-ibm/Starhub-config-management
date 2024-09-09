@@ -17,7 +17,7 @@ import pytz
 
 def create_app():
     app = Flask(__name__)
-    # CORS(app) # Enable CORS for the Flask app
+    CORS(app) # Enable CORS for the Flask app
     api = Api(app)
 
     # Load the swagger.yaml file
@@ -40,6 +40,7 @@ def create_app():
     def swagger_yaml():
         return jsonify(swagger_spec)
     
+    api.add_resource(health_check, '/health')
     api.add_resource(backup_management, '/backup')
     api.add_resource(file_management, '/config_files/list', '/config_files/view', '/config_files/download', '/config_files/downloadall' )
 
@@ -47,7 +48,11 @@ def create_app():
     return app
 
 
-
+class health_check(Resource):
+    def get(self):
+        response = jsonify(status="healthy")
+        response.status_code = 200
+        return response
 
 class backup_management(Resource):
 
