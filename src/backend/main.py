@@ -27,7 +27,7 @@ cur.execute('''
         location TEXT NOT NULL,
         backup_status TEXT DEFAULT 'NOT TRIGGERED',
         last_backup_time TEXT DEFAULT 'NOT STARTED',
-        schedule_backup_time TEXT DEFAULT 'NOT CONFIGURED',
+        next_backup_time TEXT DEFAULT 'NOT CONFIGURED',
         UNIQUE(hostname, ip_address) -- Ensures uniqueness       
     )
 ''')
@@ -54,7 +54,7 @@ cur.execute('''
                 hour TEXT DEFAULT 'null',
                 minute TEXT  DEFAULT 'null',
                 day TEXT  DEFAULT 'null',
-                next_run_time TEXT DEFAULT 'NOT CONFIGURED',
+                next_backup_time TEXT DEFAULT 'NOT CONFIGURED',
                 UNIQUE(schedule, custom_date, devices, day_of_week, hour, minute, day)
             )
         ''')

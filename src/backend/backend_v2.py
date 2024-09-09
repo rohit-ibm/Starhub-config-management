@@ -56,6 +56,7 @@ def create_app(namespace):
     api.add_resource(delete_schedule_backup, '/delete_schedule')
     api.add_resource(update_configfile, '/configdata')
     api.add_resource(next_run_time, '/next_run_time')
+    api.add_resource(update_next_run_time, '/update_next_run_time')
 
     return app
 
@@ -261,7 +262,7 @@ class inventory_management(Resource):
                 'location': row[7],
                 'backup_status': row[8],
                 'last_backup_time': row[9],
-                'schedule_backup_time': row[10]
+                'next_backup_time': row[10]
             })
 
             return jsonify(result)
@@ -546,27 +547,39 @@ class DeleteDevices(Resource):
         return self.delete_devices_from_db(devices)
 
     def delete_devices_from_db(self, devices):
+        if not devices:
+            response = jsonify({'message': 'No devices provided for deletion'})
+            response.status_code = 400
+            return response
+
         try:
             conn = sqlite3.connect('/app/db/config.db')
             conn.execute("PRAGMA foreign_keys = 1")
             cur = conn.cursor()
 
+            # First delete related records from configfiles
             placeholders = ','.join('?' for _ in devices)
-            query = f'DELETE FROM inventory WHERE hostname IN ({placeholders})'
-            cur.execute(query, devices)
+            delete_configfiles_query = f'DELETE FROM configfiles WHERE hostname IN ({placeholders})'
+            cur.execute(delete_configfiles_query, devices)
+
+            # Then delete records from inventory
+            delete_inventory_query = f'DELETE FROM inventory WHERE hostname IN ({placeholders})'
+            cur.execute(delete_inventory_query, devices)
 
             conn.commit()
 
-            response = jsonify({'message': 'Devices deleted successfully'})
+            response = jsonify({'message': 'Devices and associated records deleted successfully'})
             response.status_code = 200
         except sqlite3.OperationalError as e:
-            response = jsonify({'error': str(e)})
+            response = jsonify({'error': 'Operational error: ' + str(e)})
+            response.status_code = 400
+        except sqlite3.IntegrityError as e:
+            response = jsonify({'error': 'Integrity error: ' + str(e)})
             response.status_code = 400
         finally:
             conn.close()
 
         return response
-
 
 class backup_status_update(Resource):
 
@@ -598,7 +611,7 @@ class backup_status_update(Resource):
                 finally:
                     conn.close()
                 # response.status_code = 201
-                self.sevone_metadata_update(device_backup_data)
+            self.sevone_metadata_update(device_backup_data)
 
         return jsonify({'backup_output': device_backup_data })
     
@@ -659,7 +672,7 @@ class backup_status_update(Resource):
         username = "admin"
         password = "sdnban@123"
         bearer_token = self.authenticate(ip_address, username, password)
-        logger.debug(updatedevices)
+        # logger.debug(updatedevices)
 
         for device in updatedevices["devices"]:
             deviceName = device["hostname"]
@@ -984,7 +997,7 @@ class schedule_backup(Resource):
                 "hour": schedule[5] if schedule[5] is not None else "null",
                 "minute": schedule[6] if schedule[6] is not None else "null",
                 "day": schedule[7] if schedule[7] is not None else "null",
-                "next_run_time": schedule[8] if schedule[8] is not None else "null"
+                "next_backup_time": schedule[8] if schedule[8] is not None else "null"
             }
             schedule_list.append(schedule_dict)
 
@@ -1136,7 +1149,7 @@ class next_run_time(Resource):
 
         # Fetch all rows
         query = '''
-        SELECT devices, next_run_time FROM schedules;
+        SELECT devices, next_backup_time FROM schedules;
         '''
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -1155,3 +1168,40 @@ class next_run_time(Resource):
                     device_times[device] = next_run_time
 
         return device_times
+
+class update_next_run_time(Resource):
+
+    def post(self):
+
+        try:
+            # Connect to the SQLite database
+            conn = sqlite3.connect('/app/db/config.db')
+            conn.execute("PRAGMA foreign_keys = 1")
+            cur = conn.cursor()
+
+            # Get the request JSON body
+            data = request.get_json()
+
+            if not data:
+                return jsonify({"error": "Invalid request, no data provided"})
+
+            # Prepare the update query for each device
+            for hostname, next_backup_time in data.items():
+                query = '''UPDATE inventory SET next_backup_time = ? WHERE hostname = ?'''
+                cur.execute(query, (next_backup_time, hostname))
+
+            # Commit the transaction to the database
+            conn.commit()
+
+            response = jsonify({"message": "Next backup times updated successfully"})
+            response.status_code = 200
+        except sqlite3.OperationalError as e:
+            response = jsonify({'error': str(e)})
+            response.status_code = 400
+        except Exception as e:
+            response = jsonify({'error': str(e)})
+            response.status_code = 500
+        finally:
+            conn.close()
+
+        return response
