@@ -14,7 +14,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.get(`http://9.46.116.210:5000/get_token?username=${username}&password=${password}`, {
+      const response = await axios.get(`http://9.46.112.167:5000/get_token?username=${username}&password=${password}`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

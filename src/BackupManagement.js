@@ -114,7 +114,7 @@ const App = () => {
         },
       });
 
-      const postResponse = await axios.post('http://9.46.112.167:5000/post_backup', getResponse.data, {
+      const postResponse = await axios.post('http://9.46.66.96:9000/backup', getResponse.data, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -141,20 +141,22 @@ const App = () => {
     setSelectedDate(date);
   };
 
-  const handleScheduleBackupSubmit = async () => {
+  const handleCustomBackupSubmit = async () => {
     setShowDatePicker(false);
+    const selectedDateFormatted = new Date(selectedDate).toISOString().slice(0, 19).replace('T', ' ');
 
     try {
-      const response = await axios.post('http://9.46.112.167:5000/inventory_data/schedule_backup', {
-        date: selectedDate.toISOString(),
-        devices: selectedDevices
+      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+        schedule: 'custom',
+        devices: selectedDevices,
+        customDate: selectedDateFormatted
       }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      console.log('Schedule Backup Response:', response);
+      console.log('Custom Backup Response:', response);
 
       alert('Custom Backup scheduled');
     } catch (error) {
@@ -364,6 +366,7 @@ const App = () => {
                 <th className="tableHeader">Location</th>
                 <th className="tableHeader">Device Type</th>
                 <th className="tableHeader">Backup Status</th>
+                <th className="tableHeader">Next Backup Time</th>
               </tr>
             </thead>
             <tbody>
@@ -382,6 +385,7 @@ const App = () => {
                   <td className="tableCell">{device.location}</td>
                   <td className="tableCell">{device.device_type}</td>
                   <td className="tableCell">{device.backup_status}</td>
+                  <td className="tableCell">{device.next_backup_time}</td>
                 </tr>
               ))}
             </tbody>
@@ -404,7 +408,7 @@ const App = () => {
             dateFormat="Pp"
             inline
           />
-          <button onClick={handleScheduleBackupSubmit} className="submit-button">Submit</button>
+          <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
         </div>
       )}
     </div>
