@@ -1,9 +1,11 @@
+// src/components/Dashboard.js
 import React from 'react';
 import { Link, Routes, Route, useNavigate } from 'react-router-dom';
 import DiscoveryManagement from './DiscoveryManagement';
 import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
 import CompareBackup from './CompareBackup';
+import UserProfileAdministrator from './UserProfileAdministrator'; // Import the new component
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -25,6 +27,7 @@ const Dashboard = () => {
           <li><Link to="discovery-management">Discovery Management</Link></li>
           <li><Link to="backup-management">Backup Management</Link></li>
           <li><Link to="list-device">View/Download & Compare Backup</Link></li>
+          <li><Link to="user-profile-administrator">User Profile Administrator</Link></li> {/* Add the new link */}
         </ul>
       </nav>
       <main>
@@ -33,6 +36,7 @@ const Dashboard = () => {
           <Route path="backup-management" element={<BackupManagement />} />
           <Route path="list-device" element={<ListDevice />} />
           <Route path="list-device/compare-backup/:hostname" element={<CompareBackup />} />
+          <Route path="user-profile-administrator" element={<UserProfileAdministrator />} /> {/* Add the new route */}
         </Routes>
       </main>
     </div>
