@@ -1164,7 +1164,7 @@ class next_run_time(Resource):
 
             for device in devices:
                 device = device.strip()
-                if device not in device_times or device_times[device] < next_run_time:
+                if device not in device_times or device_times[device] > next_run_time:
                     device_times[device] = next_run_time
 
         return device_times
@@ -1205,3 +1205,5 @@ class update_next_run_time(Resource):
             conn.close()
 
         return response
+
+# class rna_integration(Resource):

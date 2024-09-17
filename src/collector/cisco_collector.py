@@ -21,7 +21,7 @@ def create_app():
     api = Api(app)
 
     # Load the swagger.yaml file
-    with open('/ciscocollector/config/swagger.yaml', 'r') as file:
+    with open('/ciscocollector/swagger.yaml', 'r') as file:
         swagger_spec = yaml.safe_load(file)
 
     # Setup the Swagger UI
@@ -57,7 +57,7 @@ class health_check(Resource):
 class backup_management(Resource):
 
     def post(self):
-        playbook_path = "/ciscocollector/config/config-playbook.yaml"
+        playbook_path = "/ciscocollector/config-playbook.yaml"
         # inventory = request.json.get('inventory')
         inventory_data = request.json.get('inventory')
 
