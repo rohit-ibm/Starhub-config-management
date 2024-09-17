@@ -54,7 +54,7 @@ class BackupScheduler:
             
             conn = sqlite3.connect('/scheduler/db/config.db')
             cursor = conn.cursor()
-            cursor.execute('UPDATE schedules SET next_run_time = ? WHERE id = ?', (next_run_time, job_id))
+            cursor.execute('UPDATE schedules SET next_backup_time = ? WHERE id = ?', (next_run_time, job_id))
             conn.commit()
             conn.close()
             self.update_next_backup_time_inventory_table()
