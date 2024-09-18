@@ -142,8 +142,15 @@ const App = () => {
   };
 
   const handleCustomBackupSubmit = async () => {
+    if (!selectedDate || selectedDevices.length === 0) {
+      alert('Please select a valid date and at least one device.');
+      return;
+    }
     setShowDatePicker(false);
-    const selectedDateFormatted = new Date(selectedDate).toISOString().slice(0, 19).replace('T', ' ');
+    // Adjust date to preserve local timezone (without converting to UTC)
+    const selectedDateFormatted = `${selectedDate.getFullYear()}-${('0' + (selectedDate.getMonth() + 1)).slice(-2)}-${('0' + selectedDate.getDate()).slice(-2)} ${('0' + selectedDate.getHours()).slice(-2)}:${('0' + selectedDate.getMinutes()).slice(-2)}:00`;
+
+    //const selectedDateFormatted = new Date(selectedDate).toISOString().slice(0, 19).replace('T', ' ');
 
     try {
       const response = await axios.post('http://9.46.112.167:5000/schedules', {

@@ -21,7 +21,7 @@ const CompareBackup = () => {
     // Fetch data from the API
     const fetchBackupFiles = async () => {
       try {
-        const response = await axios.get(`http://9.46.112.167:5000/config_files/list?hostname=${hostname}`);
+        const response = await axios.get(`http://9.46.66.96:9000/config_files/list?hostname=${hostname}`);
         setBackupFiles(response.data);
         setFilteredBackupFiles(response.data);
       } catch (error) {
@@ -47,7 +47,7 @@ const CompareBackup = () => {
 
   const handleDisplaySelected = () => {
     const fileFetchPromises = selectedFiles.map((filename) => {
-      return axios.get(`http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`)
+      return axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
         .then((response) => ({ [filename]: response.data }))
         .catch((error) => {
           console.error('Error fetching file content:', error);
@@ -72,7 +72,7 @@ const CompareBackup = () => {
   };
 
   const handleView = (filename) => {
-    axios.get(`http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`)
+    axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
       .then((response) => {
         setViewedFileName(filename);
         setViewedFileContent(response.data);
@@ -83,7 +83,7 @@ const CompareBackup = () => {
 
   const handleDownload = (filename) => {
     axios({
-      url: `http://9.46.112.167:5000/config_files/view?hostname=${hostname}&filename=${filename}`,
+      url: `http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`,
       method: 'GET',
       responseType: 'blob', // Important for downloading files
     })
