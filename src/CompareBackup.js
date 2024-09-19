@@ -15,15 +15,16 @@ const CompareBackup = () => {
   const [viewedFileName, setViewedFileName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const filesPerPage = 5; // Adjust the number of files per page as needed
+  const filesPerPage = 10; // Adjust the number of files per page as needed
 
   useEffect(() => {
     // Fetch data from the API
     const fetchBackupFiles = async () => {
       try {
         const response = await axios.get(`http://9.46.66.96:9000/config_files/list?hostname=${hostname}`);
-        setBackupFiles(response.data);
-        setFilteredBackupFiles(response.data);
+        const reversedFiles = response.data.reverse(); // Reverse the order of files
+        setBackupFiles(reversedFiles);
+        setFilteredBackupFiles(reversedFiles);
       } catch (error) {
         console.error('Error fetching backup files:', error);
       }
@@ -257,7 +258,9 @@ const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages })
       >
         {'<'}
       </button>
-      <span className="page-number">{currentPage}</span>
+      <span className="page-info">
+        Page <span className="current-page">{currentPage}</span> of {totalPages}
+      </span>
       <button
         onClick={handleNextPage}
         disabled={currentPage === totalPages}
