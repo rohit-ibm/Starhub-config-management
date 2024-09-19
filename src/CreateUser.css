@@ -1,0 +1,59 @@
+/* src/components/CreateUser.css */
+.create-user {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .create-user h2 {
+    text-align: center;
+  }
+  
+  .create-user .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .create-user .form-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .create-user .form-group input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  
+  .create-user button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .create-user button:hover {
+    background-color: #0056b3;
+  }
+  
+  .message {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  

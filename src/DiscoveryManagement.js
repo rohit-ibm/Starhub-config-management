@@ -12,9 +12,8 @@ const App = () => {
   const [allDevices, setAllDevices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const devicesPerPage = 10; // Adjust the number of devices per page as needed
+  const devicesPerPage = 10; 
 
-  // Static data for device groups
   const staticDeviceGroups = [
     {
       "name": "cisco",
