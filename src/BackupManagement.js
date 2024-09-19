@@ -164,11 +164,38 @@ const App = () => {
   const handleSearch = () => {
     const filteredDevices = allDevices.filter(device => 
       device.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.backup_status.toLowerCase().includes(searchTerm.toLowerCase())
+      device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.backup_status.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setDeviceGroupDetails({ devices: filteredDevices });
+  };
+
+  const handleDeleteDevices = async () => {
+    if (selectedDevices.length === 0) {
+      alert('Please select devices to delete.');
+      return;
+    }
+
+    try {
+      const url = `http://9.46.112.167:5000/delete_devices?${selectedDevices.map(device => `devices=${device}`).join('&')}`;
+      await axios.delete(url, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Update the state to remove deleted devices
+      const remainingDevices = allDevices.filter(device => !selectedDevices.includes(device.hostname));
+      setAllDevices(remainingDevices);
+      setDeviceGroupDetails({ devices: remainingDevices });
+      setSelectedDevices([]);
+
+      alert('Selected devices deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting devices:', error);
+      alert('Failed to delete devices');
+    }
   };
 
   if (loading) {
@@ -202,6 +229,7 @@ const App = () => {
       <div className="button-container">
         <button onClick={handleImmediateBackup} className="immediate-button">Immediate Backup</button>
         <button onClick={handleScheduleBackup} className="schedule-button">Schedule Backup</button>
+        <button onClick={handleDeleteDevices} className="delete-button">Delete Device</button> {/* New Delete Device Button */}
       </div>
       <div className="search-container">
         <button onClick={handleSelectAll} className="select-all-button">
@@ -227,77 +255,55 @@ const App = () => {
             <thead>
               <tr>
                 <th className="tableHeader">Select</th>
-                <th className="tableHeader">Device Id</th>
+                <th className="tableHeader">Device Group</th>
                 <th className="tableHeader">Hostname</th>
                 <th className="tableHeader">IP Address</th>
                 <th className="tableHeader">Location</th>
-                <th className="tableHeader">Device Type</th>
                 <th className="tableHeader">Backup Status</th>
               </tr>
             </thead>
             <tbody>
-              {currentDevices.map((device, index) => (
-                <tr key={index}>
-                  <td className="tableCell">
+              {currentDevices.map(device => (
+                <tr key={device.hostname}>
+                  <td>
                     <input
                       type="checkbox"
-                      onChange={(e) => handleSelectDevice(e, device.hostname)}
                       checked={selectedDevices.includes(device.hostname)}
+                      onChange={(e) => handleSelectDevice(e, device.hostname)}
                     />
                   </td>
-                  <td className="tableCell">{device.id}</td>
-                  <td className="tableCell">{device.hostname}</td>
-                  <td className="tableCell">{device.ip_address}</td>
-                  <td className="tableCell">{device.location}</td>
-                  <td className="tableCell">{device.device_type}</td>
-                  <td className="tableCell">{device.backup_status}</td>
+                  <td>{device.device_group}</td>
+                  <td>{device.hostname}</td>
+                  <td>{device.ip_address}</td>
+                  <td>{device.location}</td>
+                  <td>{device.backup_status}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <Pagination
-            currentPage={currentPage}
-            handleNextPage={handleNextPage}
-            handlePrevPage={handlePrevPage}
-            totalPages={totalPages}
-          />
+          <div className="pagination">
+            {currentPage > 1 && (
+              <button onClick={handlePrevPage} className="pagination-button">Previous</button>
+            )}
+            {currentPage < totalPages && (
+              <button onClick={handleNextPage} className="pagination-button">Next</button>
+            )}
+          </div>
         </div>
       )}
 
       {showDatePicker && (
-        <div className="datepicker-container">
+        <div className="date-picker-container">
+          <h2>Select a date and time</h2>
           <DatePicker
             selected={selectedDate}
             onChange={handleDateChange}
             showTimeSelect
             dateFormat="Pp"
-            inline
           />
-          <button onClick={handleScheduleBackupSubmit} className="submit-button">Submit</button>
+          <button onClick={handleScheduleBackupSubmit} className="schedule-submit-button">Schedule Backup</button>
         </div>
       )}
-    </div>
-  );
-};
-
-const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
-  return (
-    <div className="pagination">
-      <button
-        onClick={handlePrevPage}
-        disabled={currentPage === 1}
-        className="page-link">
-        {'<'}
-      </button>
-      <span className="page-info">
-        Page <span className="current-page">{currentPage}</span> of {totalPages}
-      </span>
-      <button
-        onClick={handleNextPage}
-        disabled={currentPage === totalPages}
-        className="page-link">
-        {'>'}
-      </button>
     </div>
   );
 };
