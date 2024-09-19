@@ -24,11 +24,9 @@ const Login = () => {
         localStorage.setItem('token', response.data);
         navigate('/dashboard');
       } else {
-        navigate('/dashboard');
         setError('Invalid username or password');
       }
     } catch (error) {
-      navigate('/dashboard');
       setError('Failed to login');
       console.error('Login error:', error);
     }
