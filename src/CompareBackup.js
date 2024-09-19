@@ -179,7 +179,7 @@ const CompareBackup = () => {
             <th>Select</th>
             <th>File Name</th>
             <th>Hostname</th>
-            <th>Last Modified</th>
+            <th>Backup Time</th>
             <th>Action</th>
           </tr>
         </thead>
