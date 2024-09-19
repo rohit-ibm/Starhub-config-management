@@ -1,11 +1,11 @@
-// src/components/Dashboard.js
 import React from 'react';
-import { Link, Routes, Route, useNavigate } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import DiscoveryManagement from './DiscoveryManagement';
 import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
 import CompareBackup from './CompareBackup';
-import UserProfileAdministrator from './UserProfileAdministrator'; // Import the new component
+// import UserProfileAdministrator from './UserProfileAdministrator'; // Comment this import
+import CreateUser from './CreateUser';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -19,7 +19,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <header>
-        <h1>Welcome to Config Management</h1>
+        <h1>Configuration Management</h1>
         <button onClick={handleLogout} className="logout-button">Logout</button>
       </header>
       <nav>
@@ -27,7 +27,7 @@ const Dashboard = () => {
           <li><Link to="discovery-management">Discovery Management</Link></li>
           <li><Link to="backup-management">Backup Management</Link></li>
           <li><Link to="list-device">View/Download & Compare Backup</Link></li>
-          <li><Link to="user-profile-administrator">User Profile Administrator</Link></li> {/* Add the new link */}
+          {/* <li><Link to="user-profile-administrator">User Profile Administrator</Link></li> */}
         </ul>
       </nav>
       <main>
@@ -36,7 +36,10 @@ const Dashboard = () => {
           <Route path="backup-management" element={<BackupManagement />} />
           <Route path="list-device" element={<ListDevice />} />
           <Route path="list-device/compare-backup/:hostname" element={<CompareBackup />} />
-          <Route path="user-profile-administrator" element={<UserProfileAdministrator />} /> {/* Add the new route */}
+          {/* <Route path="user-profile-administrator" element={<UserProfileAdministrator />} /> */}
+          <Route path="create-user" element={<CreateUser />} />
+          {/* Default route inside Dashboard */}
+          <Route path="/" element={<Navigate to="discovery-management" />} />
         </Routes>
       </main>
     </div>

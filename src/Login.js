@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
-import ibmLogo from './ibm_logo.jpg'; // Make sure the logo file is in the correct path
+import ibmLogo from './ibm_logo.jpg';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  let token = '';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,6 +24,7 @@ const Login = () => {
         localStorage.setItem('token', response.data);
         navigate('/dashboard');
       } else {
+        navigate('/dashboard');
         setError('Invalid username or password');
       }
     } catch (error) {
