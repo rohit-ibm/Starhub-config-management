@@ -127,7 +127,7 @@ const App = () => {
 
   return (
     <div className="container">
-      <h1 className="header">Device Groups</h1>
+      {/* <h1 className="header">Device Groups</h1> */}
       <div className="device-group-controls">
         <label htmlFor="device-group" className="label">Select Device Group:</label>
         <select id="device-group" onChange={handleDeviceGroupChange} className="select">

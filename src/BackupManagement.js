@@ -17,6 +17,11 @@ const App = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchTerm, setSearchTerm] = useState(''); // New state for search term
+  const [scheduleOption, setScheduleOption] = useState('');
+  const [weekDay, setWeekDay] = useState('');
+  const [monthDay, setMonthDay] = useState('');
+  const [time, setTime] = useState(null);
+
   const devicesPerPage = 10; // Adjust the number of devices per page as needed
 
   const staticDeviceGroups = [
@@ -109,7 +114,7 @@ const App = () => {
         },
       });
 
-      const postResponse = await axios.post('http://9.46.112.167:5000/post_backup', getResponse.data, {
+      const postResponse = await axios.post('http://9.46.66.96:9000/backup', getResponse.data, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -124,6 +129,10 @@ const App = () => {
     }
   };
 
+  const handleScheduleOptionChange = (event) => {
+    setScheduleOption(event.target.value);
+  };
+
   const handleScheduleBackup = () => {
     setShowDatePicker(true);
   };
@@ -132,22 +141,31 @@ const App = () => {
     setSelectedDate(date);
   };
 
-  const handleScheduleBackupSubmit = async () => {
+  const handleCustomBackupSubmit = async () => {
+    if (!selectedDate || selectedDevices.length === 0) {
+      alert('Please select a valid date and at least one device.');
+      return;
+    }
     setShowDatePicker(false);
+    // Adjust date to preserve local timezone (without converting to UTC)
+    const selectedDateFormatted = `${selectedDate.getFullYear()}-${('0' + (selectedDate.getMonth() + 1)).slice(-2)}-${('0' + selectedDate.getDate()).slice(-2)} ${('0' + selectedDate.getHours()).slice(-2)}:${('0' + selectedDate.getMinutes()).slice(-2)}:00`;
+
+    //const selectedDateFormatted = new Date(selectedDate).toISOString().slice(0, 19).replace('T', ' ');
 
     try {
-      const response = await axios.post('http://9.46.112.167:5000/inventory_data/schedule_backup', {
-        date: selectedDate.toISOString(),
-        devices: selectedDevices
+      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+        schedule: 'custom',
+        devices: selectedDevices,
+        customDate: selectedDateFormatted
       }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      console.log('Schedule Backup Response:', response);
+      console.log('Custom Backup Response:', response);
 
-      alert('Backup scheduled');
+      alert('Custom Backup scheduled');
     } catch (error) {
       console.error('Error scheduling backup:', error);
       alert('Failed to schedule backup');
@@ -171,30 +189,65 @@ const App = () => {
     setDeviceGroupDetails({ devices: filteredDevices });
   };
 
-  const handleDeleteDevices = async () => {
-    if (selectedDevices.length === 0) {
-      alert('Please select devices to delete.');
+  const handleScheduleWeeklyBackup = async () => {
+    if (!time || !weekDay || selectedDevices.length === 0) {
+      alert('Please select a valid time, day, and at least one device.');
       return;
     }
 
+    const hour = time.getHours();
+    const minute = time.getMinutes();
+
     try {
-      const url = `http://9.46.112.167:5000/delete_devices?${selectedDevices.map(device => `devices=${device}`).join('&')}`;
-      await axios.delete(url, {
+      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+        schedule: 'weekly',
+        devices: selectedDevices,
+        dayOfWeek: weekDay,
+        hour: hour,
+        minute: minute
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      // Update the state to remove deleted devices
-      const remainingDevices = allDevices.filter(device => !selectedDevices.includes(device.hostname));
-      setAllDevices(remainingDevices);
-      setDeviceGroupDetails({ devices: remainingDevices });
-      setSelectedDevices([]);
+      console.log('Schedule Weekly Backup Response:', response);
 
-      alert('Selected devices deleted successfully.');
+      alert('Weekly backup scheduled');
     } catch (error) {
-      console.error('Error deleting devices:', error);
-      alert('Failed to delete devices');
+      console.error('Error scheduling weekly backup:', error);
+      alert('Failed to schedule weekly backup');
+    }
+  };
+
+  const handleScheduleMonthlyBackup = async () => {
+    if (!time || !monthDay || selectedDevices.length === 0) {
+      alert('Please select a valid time, day, and at least one device.');
+      return;
+    }
+
+    const hour = time.getHours();
+    const minute = time.getMinutes();
+
+    try {
+      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+        schedule: 'monthly',
+        devices: selectedDevices,
+        day: monthDay,
+        hour: hour,
+        minute: minute
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Schedule Monthly Backup Response:', response);
+
+      alert('Monthly backup scheduled');
+    } catch (error) {
+      console.error('Error scheduling monthly backup:', error);
+      alert('Failed to schedule monthly backup');
     }
   };
 
@@ -213,7 +266,7 @@ const App = () => {
 
   return (
     <div className="container">
-      <h1 className="header">Device Groups</h1>
+      {/* <h1 className="header">Device Groups</h1> */}
       <div className="device-group-controls">
         <label htmlFor="device-group" className="label">Select Device Group:</label>
         <select id="device-group" onChange={handleDeviceGroupChange} className="select">
@@ -228,9 +281,71 @@ const App = () => {
       </div>
       <div className="button-container">
         <button onClick={handleImmediateBackup} className="immediate-button">Immediate Backup</button>
-        <button onClick={handleScheduleBackup} className="schedule-button">Schedule Backup</button>
-        <button onClick={handleDeleteDevices} className="delete-button">Delete Device</button> {/* New Delete Device Button */}
+        <select id="schedule-options" onChange={handleScheduleOptionChange} className="schedule-dropdown">
+          <option value="">Select Schedule Option</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="custom">Custom</option>
+        </select>
       </div>
+      {scheduleOption === 'weekly' && (
+        <div className="schedule-options-container">
+          <label htmlFor="week-day" className="label">Select Week Day:</label>
+          <select id="week-day" value={weekDay} onChange={(e) => setWeekDay(e.target.value)} className="select">
+            <option value="">Select a day</option>
+            <option value="sun">Sunday</option>
+            <option value="mon">Monday</option>
+            <option value="tue">Tuesday</option>
+            <option value="wed">Wednesday</option>
+            <option value="thu">Thursday</option>
+            <option value="fri">Friday</option>
+            <option value="sat">Saturday</option>
+          </select>
+          <label htmlFor="time" className="label">Select Time:</label>
+          <DatePicker
+            selected={time}
+            onChange={(date) => setTime(date)}
+            showTimeSelect
+            showTimeSelectOnly
+            timeIntervals={15}
+            timeCaption="Time"
+            dateFormat="h:mm aa"
+            className="time-picker"
+          />
+          <button onClick={handleScheduleWeeklyBackup} className="submit-button">Submit</button>
+        </div>
+      )}
+      {scheduleOption === 'monthly' && (
+        <div className="schedule-options-container">
+          <label htmlFor="month-day" className="label">Select Month Day:</label>
+          <input
+            type="number"
+            id="month-day"
+            value={monthDay}
+            onChange={(e) => setMonthDay(e.target.value)}
+            min="1"
+            max="31"
+            className="input"
+          />
+          <label htmlFor="time" className="label">Select Time:</label>
+          <DatePicker
+            selected={time}
+            onChange={(date) => setTime(date)}
+            showTimeSelect
+            showTimeSelectOnly
+            timeIntervals={15}
+            timeCaption="Time"
+            dateFormat="h:mm aa"
+            className="time-picker"
+          />
+          <button onClick={handleScheduleMonthlyBackup} className="submit-button">Submit</button>
+        </div>
+      )}
+      {scheduleOption === 'custom' && (
+        <div className="schedule-options-container">
+          <button onClick={handleScheduleBackup} className="schedule-button">Select Date & Time</button>
+        </div>
+      )}
       <div className="search-container">
         <button onClick={handleSelectAll} className="select-all-button">
           {selectedDevices.length === deviceGroupDetails?.devices.length ? 'Deselect All' : 'Select All'}
@@ -243,9 +358,6 @@ const App = () => {
           className="search-input"
         />
         <button onClick={handleSearch} className="search-button">Search</button>
-      </div>
-      <div className="select-all-container">
-        
       </div>
 
       {deviceGroupDetails && (
@@ -260,6 +372,7 @@ const App = () => {
                 <th className="tableHeader">IP Address</th>
                 <th className="tableHeader">Location</th>
                 <th className="tableHeader">Backup Status</th>
+                <th className="tableHeader">Next Backup Time</th>
               </tr>
             </thead>
             <tbody>
@@ -272,11 +385,13 @@ const App = () => {
                       onChange={(e) => handleSelectDevice(e, device.hostname)}
                     />
                   </td>
-                  <td>{device.device_group}</td>
-                  <td>{device.hostname}</td>
-                  <td>{device.ip_address}</td>
-                  <td>{device.location}</td>
-                  <td>{device.backup_status}</td>
+                  <td className="tableCell">{device.id}</td>
+                  <td className="tableCell">{device.hostname}</td>
+                  <td className="tableCell">{device.ip_address}</td>
+                  <td className="tableCell">{device.location}</td>
+                  <td className="tableCell">{device.device_type}</td>
+                  <td className="tableCell">{device.backup_status}</td>
+                  <td className="tableCell">{device.next_backup_time}</td>
                 </tr>
               ))}
             </tbody>
@@ -301,7 +416,7 @@ const App = () => {
             showTimeSelect
             dateFormat="Pp"
           />
-          <button onClick={handleScheduleBackupSubmit} className="schedule-submit-button">Schedule Backup</button>
+          <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
         </div>
       )}
     </div>

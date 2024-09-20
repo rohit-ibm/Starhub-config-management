@@ -89,7 +89,7 @@ const ListDevice = () => {
         <button onClick={handleSearch} className="search-button">Search</button>
       </div>
       <div className="list-device">
-        <h2>Select a device</h2>
+        <h2>Device Backup Information</h2>
         <table>
           <thead>
             <tr>
