@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './BackupManagement.css';
 import axios from 'axios';
-import deviceGroupsData from './config-management.json'; // Import JSON data
+import deviceGroupsData from './config-management.json';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
