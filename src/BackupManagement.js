@@ -292,7 +292,7 @@ const App = () => {
   };
 
   if (loading) {
-    return <div>Device backup in progress...</div>;
+    return <div>Loading...</div>;
   }
 
   if (error) {
