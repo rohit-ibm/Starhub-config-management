@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './BackupManagement.css';
 import axios from 'axios';
-import deviceGroupsData from './config-management.json'; // Import JSON data
+import deviceGroupsData from './config-management.json';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -182,9 +182,9 @@ const App = () => {
   const handleSearch = () => {
     const filteredDevices = allDevices.filter(device => 
       device.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.backup_status.toLowerCase().includes(searchTerm.toLowerCase())
+      device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.backup_status.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setDeviceGroupDetails({ devices: filteredDevices });
   };
@@ -367,23 +367,22 @@ const App = () => {
             <thead>
               <tr>
                 <th className="tableHeader">Select</th>
-                <th className="tableHeader">Device Id</th>
+                <th className="tableHeader">Device Group</th>
                 <th className="tableHeader">Hostname</th>
                 <th className="tableHeader">IP Address</th>
                 <th className="tableHeader">Location</th>
-                <th className="tableHeader">Device Type</th>
                 <th className="tableHeader">Backup Status</th>
                 <th className="tableHeader">Next Backup Time</th>
               </tr>
             </thead>
             <tbody>
-              {currentDevices.map((device, index) => (
-                <tr key={index}>
-                  <td className="tableCell">
+              {currentDevices.map(device => (
+                <tr key={device.hostname}>
+                  <td>
                     <input
                       type="checkbox"
-                      onChange={(e) => handleSelectDevice(e, device.hostname)}
                       checked={selectedDevices.includes(device.hostname)}
+                      onChange={(e) => handleSelectDevice(e, device.hostname)}
                     />
                   </td>
                   <td className="tableCell">{device.id}</td>
@@ -397,49 +396,29 @@ const App = () => {
               ))}
             </tbody>
           </table>
-          <Pagination
-            currentPage={currentPage}
-            handleNextPage={handleNextPage}
-            handlePrevPage={handlePrevPage}
-            totalPages={totalPages}
-          />
+          <div className="pagination">
+            {currentPage > 1 && (
+              <button onClick={handlePrevPage} className="pagination-button">Previous</button>
+            )}
+            {currentPage < totalPages && (
+              <button onClick={handleNextPage} className="pagination-button">Next</button>
+            )}
+          </div>
         </div>
       )}
 
       {showDatePicker && (
-        <div className="datepicker-container">
+        <div className="date-picker-container">
+          <h2>Select a date and time</h2>
           <DatePicker
             selected={selectedDate}
             onChange={handleDateChange}
             showTimeSelect
             dateFormat="Pp"
-            inline
           />
           <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
         </div>
       )}
-    </div>
-  );
-};
-
-const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
-  return (
-    <div className="pagination">
-      <button
-        onClick={handlePrevPage}
-        disabled={currentPage === 1}
-        className="page-link">
-        {'<'}
-      </button>
-      <span className="page-info">
-        Page <span className="current-page">{currentPage}</span> of {totalPages}
-      </span>
-      <button
-        onClick={handleNextPage}
-        disabled={currentPage === totalPages}
-        className="page-link">
-        {'>'}
-      </button>
     </div>
   );
 };
