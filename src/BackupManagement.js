@@ -4,6 +4,8 @@ import axios from 'axios';
 import deviceGroupsData from './config-management.json';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { ClipLoader } from 'react-spinners';
+
 
 const App = () => {
   const [deviceGroups, setDeviceGroups] = useState([]);
@@ -106,6 +108,7 @@ const App = () => {
   const handleImmediateBackup = async () => {
     const baseUrl = 'http://9.46.112.167:5000/inventory_data/devices';
     const url = `${baseUrl}?${selectedDevices.map(device => `devices=${device}`).join('&')}`;
+    setLoading(true);
 
     try {
       const getResponse = await axios.get(url, {
@@ -125,7 +128,11 @@ const App = () => {
       alert('Immediate backup initiated');
     } catch (error) {
       console.error('Error initiating immediate backup:', error);
+      
       alert('Failed to initiate immediate backup');
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -177,6 +184,39 @@ const App = () => {
       ? [...selectedDevices, deviceHostname]
       : selectedDevices.filter(hostname => hostname !== deviceHostname);
     setSelectedDevices(newSelectedDevices);
+  };
+
+  
+  const handleDeleteDevices = async () => {
+    if (selectedDevices.length === 0) {
+      alert('Please select at least one device to delete.');
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://9.46.112.167:5000/delete_devices?devices=${selectedDevices.join(',')}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Device(s) deleted successfully');
+        // Optionally, remove deleted devices from the UI
+        const updatedDevices = allDevices.filter(device => !selectedDevices.includes(device.hostname));
+        setAllDevices(updatedDevices);
+        setSelectedDevices([]);
+        setDeviceGroupDetails({ devices: updatedDevices });
+      } else {
+        alert('Failed to delete device(s).');
+      }
+    } catch (error) {
+      console.error('Error deleting device(s):', error);
+      alert('An error occurred while deleting device(s).');
+    }
   };
 
   const handleSearch = () => {
@@ -252,7 +292,7 @@ const App = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Device backup in progress...</div>;
   }
 
   if (error) {
@@ -287,6 +327,7 @@ const App = () => {
           <option value="monthly">Monthly</option>
           <option value="custom">Custom</option>
         </select>
+        <button onClick={handleDeleteDevices} className="delete-button">Delete Device</button> {/* New Delete Button */}
       </div>
       {scheduleOption === 'weekly' && (
         <div className="schedule-options-container">
@@ -396,14 +437,20 @@ const App = () => {
               ))}
             </tbody>
           </table>
-          <div className="pagination">
+          {/* <div className="pagination">
             {currentPage > 1 && (
               <button onClick={handlePrevPage} className="pagination-button">Previous</button>
             )}
             {currentPage < totalPages && (
               <button onClick={handleNextPage} className="pagination-button">Next</button>
             )}
-          </div>
+          </div> */}
+          <Pagination
+            currentPage={currentPage}
+            handleNextPage={handleNextPage}
+            handlePrevPage={handlePrevPage}
+            totalPages={totalPages}
+          />
         </div>
       )}
 
@@ -423,4 +470,31 @@ const App = () => {
   );
 };
 
+const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
+  return (
+    <div className="pagination">
+      <button 
+        onClick={handlePrevPage} 
+        disabled={currentPage === 1} 
+        className="page-link">
+        {'<'}
+      </button>
+      <span className="page-info">
+        Page <span className="current-page">{currentPage}</span> of {totalPages}
+      </span>
+      <button 
+        onClick={handleNextPage} 
+        disabled={currentPage === totalPages} 
+        className="page-link">
+        {'>'}
+      </button>
+    </div>
+  
+    
+  );
+
+  
+};
+
 export default App;
+
