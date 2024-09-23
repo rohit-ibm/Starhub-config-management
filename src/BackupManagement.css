@@ -124,7 +124,6 @@
   color: #fff;
   border: none;
   padding: 8px 12px;
-  margin-right: 650px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 12px;
@@ -158,4 +157,22 @@ img.device-loader {
   top: 30%;
   left: 50%;
   transform: translateX(-50%);
+}
+
+.schedule-options-container.date-time {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-select-time {
+  margin-left: 15px;
+}
+
+.mr-15{
+  margin-right: 15px;
+}
+
+.select-all {
+  text-align: left;
 }

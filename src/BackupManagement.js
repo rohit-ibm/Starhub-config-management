@@ -25,6 +25,7 @@ const App = () => {
   const [weekDay, setWeekDay] = useState('');
   const [monthDay, setMonthDay] = useState('');
   const [time, setTime] = useState(null);
+  const [showPicker, setShowPicker] = useState(false);
 
   const devicesPerPage = 10; // Adjust the number of devices per page as needed
 
@@ -144,6 +145,7 @@ const App = () => {
 
   const handleScheduleBackup = () => {
     setShowDatePicker(true);
+    setShowPicker(true); 
   };
 
   const handleDateChange = (date) => {
@@ -383,7 +385,7 @@ const App = () => {
             onChange={(e) => setMonthDay(e.target.value)}
             min="1"
             max="31"
-            className="input"
+            className="input mr-15"
           />
           <label htmlFor="time" className="label">Select Time:</label>
           <DatePicker
@@ -400,14 +402,40 @@ const App = () => {
         </div>
       )}
       {scheduleOption === 'custom' && (
-        <div className="schedule-options-container">
+        <div className="schedule-options-container date-time">
           <button onClick={handleScheduleBackup} className="schedule-button">Select Date & Time</button>
+          {/* {showPicker && (
+            <div className="custom-select-time">
+              <label htmlFor="time" className="label">Select Time:</label>
+              <DatePicker
+                selected={time}
+                onChange={(date) => setTime(date)}
+                showTimeSelect
+                showTimeSelectOnly
+                timeIntervals={15}
+                timeCaption="Time"
+                dateFormat="h:mm aa"
+                className="time-picker"
+              />
+            </div>
+          )} */}
+
+          {showDatePicker && (
+            <div className="date-picker-container custom-select-time">
+              <label htmlFor="time" className="label">Select a date and time</label>
+              <DatePicker
+                selected={selectedDate}
+                onChange={handleDateChange}
+                showTimeSelect
+                dateFormat="Pp"
+              />
+              <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
+            </div>
+          )}
+          
         </div>
       )}
       <div className="search-container">
-        <button onClick={handleSelectAll} className="select-all-button">
-          {selectedDevices.length === deviceGroupDetails?.devices.length ? 'Deselect All' : 'Select All'}
-        </button>
         <input 
           type="text" 
           placeholder="Search by hostname, IP address or location" 
@@ -421,6 +449,12 @@ const App = () => {
       {deviceGroupDetails && (
         <div>
           <h2 className="subHeader">Device Details</h2>
+          <div class="select-all">
+            <button onClick={handleSelectAll} className="select-all-button">
+              {selectedDevices.length === deviceGroupDetails?.devices.length ? 'Deselect All' : 'Select All'}
+            </button>
+          </div>
+          
           <table className="table">
             <thead>
               <tr>
@@ -472,18 +506,7 @@ const App = () => {
         </div>
       )}
 
-      {showDatePicker && (
-        <div className="date-picker-container">
-          <h2>Select a date and time</h2>
-          <DatePicker
-            selected={selectedDate}
-            onChange={handleDateChange}
-            showTimeSelect
-            dateFormat="Pp"
-          />
-          <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
-        </div>
-      )}
+      
     </div>
   );
 };
