@@ -5,11 +5,13 @@ import deviceGroupsData from './config-management.json';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ClipLoader } from 'react-spinners';
+import deviceLoader from './device-loader-img.gif';
 
 
 const App = () => {
   const [deviceGroups, setDeviceGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
+  //const [loadingData, setLoadingData] = useState(true); // Loading state for fetching data
+  const [loadingBackup, setLoadingBackup] = useState(false); // Loading state for backup
   const [error, setError] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState('');
   const [deviceGroupDetails, setDeviceGroupDetails] = useState(null);
@@ -49,7 +51,7 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      //setLoadingData(true);
       try {
         setDeviceGroups(staticDeviceGroups);
         const response = await axios.get('http://9.46.112.167:5000/inventory_data', {
@@ -64,7 +66,7 @@ const App = () => {
       } catch (error) {
         setError('Failed to fetch device groups or devices');
       } finally {
-        setLoading(false);
+        //setLoadingData(false);
       }
     };
 
@@ -108,7 +110,7 @@ const App = () => {
   const handleImmediateBackup = async () => {
     const baseUrl = 'http://9.46.112.167:5000/inventory_data/devices';
     const url = `${baseUrl}?${selectedDevices.map(device => `devices=${device}`).join('&')}`;
-    setLoading(true);
+    setLoadingBackup(true);
 
     try {
       const getResponse = await axios.get(url, {
@@ -132,7 +134,7 @@ const App = () => {
       alert('Failed to initiate immediate backup');
     }
     finally {
-      setLoading(false);
+      setLoadingBackup(false);
     }
   };
 
@@ -291,8 +293,23 @@ const App = () => {
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // if (loading) {
+  //   return <div>Loading...</div>;
+  // }
+
+  // if (error) {
+  //   return <div>Error: {error}</div>;
+  // }
+
+  // if (loadingData) {
+  //   return <div>Loading...</div>; // Message for data loading
+  // }
+
+  if (loadingBackup) {
+    return <div>
+      Loading device data...
+      <img src={deviceLoader} alt="Device Loader" className="device-loader" />
+      </div>; // Message for backup loading
   }
 
   if (error) {
