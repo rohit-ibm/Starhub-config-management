@@ -25,8 +25,8 @@ const Dashboard = () => {
       <nav>
         <ul>
           <li><Link to="discovery-management">Discovery Management</Link></li>
-          <li><Link to="backup-management">Backup Management</Link></li>
-          <li><Link to="list-device">View/Download & Compare Backup</Link></li>
+          <li><Link to="backup-management">Schedule Management</Link></li>
+          <li><Link to="list-device">Backup Management</Link></li>
           {/* <li><Link to="user-profile-administrator">User Profile Administrator</Link></li> */}
         </ul>
       </nav>
