@@ -429,6 +429,7 @@ const App = () => {
                 <th className="tableHeader">Hostname</th>
                 <th className="tableHeader">IP Address</th>
                 <th className="tableHeader">Location</th>
+                <th className="tableHeader">Device Type</th>
                 <th className="tableHeader">Backup Status</th>
                 <th className="tableHeader">Next Backup Time</th>
               </tr>
