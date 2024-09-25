@@ -8,10 +8,16 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
-  background-color: #f8f8f8;
+  padding: 4.5px 0px;
+  background-color: #fff;
   border-bottom: 1px solid #ddd;
   position: relative;
+}
+
+header img{
+  width: 68px;
+  height: 25px;
+  padding-left: 24px;
 }
 
 header h1 {

@@ -18,7 +18,8 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <header>
+      <header className='header'>
+        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM'/>
         <h1>Configuration Management</h1>
         <button onClick={handleLogout} className="logout-button">Logout</button>
       </header>
