@@ -1,11 +1,19 @@
 /* src/components/CreateUser.css */
 .create-user {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+  width: 75%;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: left;
   }
+
+  .user-form {
+    width: 50%;
+    height: 100vh;
+    box-shadow: 0px 0px 22px #00000026;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
   
   .create-user h2 {
     text-align: center;
@@ -57,3 +65,17 @@
     color: #721c24;
   }
   
+  .create-rbac-bg {
+    width: 50%;
+    height: 99vh;
+}
+
+.create-rbac-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create {
+  display: flex;
+}

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './CreateUser.css';
+import rbacImg from './RBAC.jpg';
 
 const CreateUser = () => {
   const [username, setUsername] = useState('');
@@ -32,38 +33,45 @@ const CreateUser = () => {
   };
 
   return (
-    <div className="create-user">
-      <h2>Create User</h2>
-      <div className="form-group">
-        <label>Username:</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label>Password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <div className="form-group">
-        <label>Email:</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <button onClick={handleCreateUser}>Create User</button>
-      {message && (
-        <div className={`message ${isError ? 'error' : 'success'}`}>
-          {message}
+    <div className="create">
+      <div class='user-form'>
+        <div class="create-user"> 
+        <h2>Create User</h2>
+        <div className="form-group">
+          <label>Username:</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
         </div>
-      )}
+        <div className="form-group">
+          <label>Password:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <button onClick={handleCreateUser}>Create User</button>
+        {message && (
+          <div className={`message ${isError ? 'error' : 'success'}`}>
+            {message}
+          </div>
+        )}
+        </div>
+      </div>
+      <div class="create-rbac-bg">
+      <img src={rbacImg} alt="Device Loader" />
+      </div>
     </div>
   );
 };
