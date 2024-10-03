@@ -49,7 +49,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <header className='header'>
-        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM'/>
+        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM' />
         <h1>Configuration Management</h1>
         <div className="settings-container">
           <button className="settings-button" onClick={toggleDropdown}>

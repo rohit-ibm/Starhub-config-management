@@ -2,16 +2,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
-import ibmLogo from './ibm_logo.jpg';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import Button from '@mui/material/Button';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [open, setOpen] = React.useState(false);
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const handleOpen = () => {
+    setOpen(true);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setOpen(true);  
+    setError('');
     try {
       const response = await axios.get(`http://9.46.112.167:5000/get_token?username=${username}&password=${password}`, {
         headers: {
@@ -24,6 +35,7 @@ const Login = () => {
         localStorage.setItem('token', response.data);
         navigate('/dashboard');
       } else {
+        setOpen(false);
         setError('Invalid username or password');
       }
     } catch (error) {
@@ -35,22 +47,36 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <img src={ibmLogo} alt="IBM Logo" className="ibm-logo" />
-        <h1>Welcome to Config Management</h1>
+        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM' />
+        <h1>Sign In</h1>
+        <div>
+          Login to your account
+        </div>
         <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button type="submit">Login</button>
+          <div className='username-container'>
+            <div>Username *</div>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className='password-container'>
+            <div>Password *</div>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button type="submit" onClick={handleOpen}>Login</button>
+          <Backdrop
+            sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+            open={open}
+            onClick={handleClose}
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
         </form>
         {error && <p className="error">{error}</p>}
       </div>
