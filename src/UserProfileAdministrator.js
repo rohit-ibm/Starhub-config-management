@@ -154,40 +154,6 @@ const UserProfileAdministrator = () => {
     setNewPassword(''); // Clear the password input
   };
 
-  // // Handle submitting new password for the selected user
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   const payload = {
-  //     user_id: parseInt(userId),
-  //     new_password: newPassword
-  //   };
-
-  //   try {
-  //     const response = await fetch('http://9.46.112.167:8001/reset_password', {
-  //       method: 'POST',
-  //       headers: {
-  //         'accept': 'application/json',
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(payload)
-  //     });
-
-  //     if (response.ok) {
-  //       setMessage('Password reset successfully');
-  //       setUserId('');
-  //       setNewPassword('');
-  //     } else {
-  //       const errorData = await response.json();
-  //       setMessage(`Error: ${errorData.message}`);
-  //     }
-  //   }
-
-  //   catch (error) {
-  //     setMessage('Error resetting password');
-  //   }
-  // };
-
 
   // Handle submitting new password for the selected user
   const handleSubmit = async (e) => {
