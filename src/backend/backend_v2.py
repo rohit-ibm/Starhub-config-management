@@ -688,7 +688,13 @@ class backup_status_update(Resource):
                 }
         
         # Make the API call
-            response = self.make_rest_api_call(ip_address, api_url_1, "POST", bearer_token, payload=payload, insecure=True)
+            try:
+                response = self.make_rest_api_call(ip_address, api_url_1, "POST", bearer_token, payload=payload, insecure=True)
+
+            except requests.RequestException as e:
+                logger.error(f"Error during API call: {e}")
+                return None
+
         
         
             if response:

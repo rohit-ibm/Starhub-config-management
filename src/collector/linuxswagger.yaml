@@ -4,7 +4,7 @@ info:
   description: This is swagger for documenation of all backend APIs being used for config management tool.
   version: 1.0.0
 servers:
-  - url: http://9.46.66.96:9000
+  - url: http://9.46.66.96:9001
 paths:
   /health:
     get:
@@ -41,7 +41,7 @@ paths:
                   items:
                     type: object
                     properties:
-                      hostname:
+                      devicename:
                         type: string
                       ipaddress:
                         type: string

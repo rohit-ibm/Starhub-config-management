@@ -1,0 +1,46 @@
+# Use the official Python image from the Docker Hub
+FROM python:3.11-alpine
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV ANSIBLE_HOST_KEY_CHECKING=False
+
+# Set the working directory
+WORKDIR /linuxcollector
+
+# Install necessary system dependencies including Ansible
+RUN apk add --no-cache \
+    bash \
+    openssh \
+    sshpass \
+    py3-yaml \
+    ca-certificates \
+    && apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
+    make \
+    && pip install --no-cache-dir ansible
+
+# Create Ansible temp directory
+RUN mkdir -p /tmp/.ansible/tmp && chmod 777 /tmp/.ansible/tmp
+
+# Set up the ansible.cfg
+COPY ansible.cfg /etc/ansible/ansible.cfg
+
+# Copy the rest of the application code to the working directory
+COPY . /linuxcollector/
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Cleanup build dependencies after Ansible installation
+RUN apk del .build-deps
+
+# Expose the port the app runs on
+EXPOSE 9001
+
+# Command to run the application using Gunicorn
+CMD ["gunicorn","--timeout", "120", "-w", "3", "-b", "0.0.0.0:9001", "linux_collector:app"]

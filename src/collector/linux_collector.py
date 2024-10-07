@@ -1,7 +1,7 @@
 import requests
 import yaml
 import os
-from cisco_collector_logger import logger
+from linux_collector_logger import logger
 from flask import Flask, jsonify, request, current_app as app, send_from_directory, abort, Response, send_file
 from flask_restful import Api, Resource
 from flask_cors import CORS  # Import the CORS package
@@ -21,7 +21,7 @@ def create_app():
     api = Api(app)
 
     # Load the swagger.yaml file
-    with open('/ciscocollector/swagger.yaml', 'r') as file:
+    with open('/linuxcollector/swagger.yaml', 'r') as file:
         swagger_spec = yaml.safe_load(file)
 
     # Setup the Swagger UI
@@ -57,19 +57,20 @@ class health_check(Resource):
 class backup_management(Resource):
 
     def post(self):
-        playbook_path = "/ciscocollector/config-playbook.yaml"
+        playbook_path = "/linuxcollector/config-playbook-linux.yaml"
         # inventory = request.json.get('inventory')
         inventory_data = request.json.get('inventory')
 
         inventory = {
                     'all': {
                         'children': {
-                            'network_devices': {
+                            'linux_hosts': {
                                 'hosts': {},
                                 'vars': {
                                     'ansible_user': '',
                                     'ansible_ssh_pass': '',
-                                    'ansible_network_os': 'ios',
+                                    'ansible_connection': 'ssh',
+                                    'ansible_port' : '15671',  # Specify the custom SSH port here
                                     'ansible_ssh_common_args': '-o StrictHostKeyChecking=no'
                                 }
                             },
@@ -89,12 +90,12 @@ class backup_management(Resource):
                 }
             
         for device in inventory_data:
-            inventory['all']['children']['network_devices']['hosts'][device['hostname']] = {
+            inventory['all']['children']['linux_hosts']['hosts'][device['hostname']] = {
                 'ansible_host': device['ipaddress'],
                 'ansible_user': device['username'],
                 'ansible_ssh_pass': device['password']
             }
-        inventory_path = "/ciscocollector/inventory.yaml"
+        inventory_path = "/linuxcollector/inventory.yaml"
         with open(inventory_path, 'w') as f:
             yaml.dump(inventory, f)
 
@@ -312,4 +313,4 @@ app = create_app()
 
 if __name__ == '__main__':
     
-    app.run(debug=True, port=9000)
+    app.run(debug=True, port=9001)
