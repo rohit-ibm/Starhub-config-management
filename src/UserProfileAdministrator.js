@@ -58,7 +58,7 @@ const UserProfileAdministrator = () => {
   const handleSave = async () => {
     try {
       const response = await axios.post('http://9.46.112.167:8001/add_user_to_group', {
-        user_id: selectedUserId,
+        user_id: selectedUserIds,
         group_id: selectedGroupId,
       });
       setMessage('User added to group successfully!');
@@ -122,8 +122,14 @@ const UserProfileAdministrator = () => {
 
   // Handle checkbox change for user selection
   const handleCheckboxChange = (userId) => {
-    setSelectedUserIds([userId]); // Replace the current array with only the newly selected userId
+    console.log("Selected User ID:", userId);
+    setSelectedUserIds(userId); // Replace the current array with only the newly selected userId
   };
+
+  // onChange handler for role selection for save
+     const handleRoleChange = (groupId) => {
+        setSelectedGroupId(groupId);
+      };
 
   // Handle Reset Password - Opens Popup
   const handleResetPassword = () => {
@@ -160,7 +166,7 @@ const UserProfileAdministrator = () => {
     e.preventDefault();
 
     const payload = {
-      user_id: parseInt(userId),  // Make sure userId is a valid integer
+      user_id: parseInt(selectedUserIds),  // Make sure userId is a valid integer
       new_password: newPassword     // Ensure newPassword contains the correct value
     };
 
@@ -200,7 +206,7 @@ const UserProfileAdministrator = () => {
 
   // Handle confirming user deletion
   const handleConfirmDelete = () => {
-    const userId = selectedUserIds[0];
+    const userId = selectedUserIds;
 
     axios.delete(`http://9.46.112.167:8001/delete_user/${userId}`)
       .then(() => {
@@ -254,13 +260,15 @@ const UserProfileAdministrator = () => {
             <button onClick={handleSearch}>Search</button>
           </div>
           <ul>
-            {displayedUsers.map(user => (
-              <li key={user.id}>
-                <input type="checkbox" id={user.id} onChange={() => handleCheckboxChange(user.id)} />
-                <label htmlFor={`user-${user.id}`}>{user.username}</label>
-              </li>
-            ))}
-          </ul>
+            {displayedUsers.map(user => {               
+                return (
+                  <li key={user.user_id}>
+                        <input type="checkbox"   id={`user-${user.user_id}`}  onChange={() => handleCheckboxChange(user.user_id)}  />
+                        <label htmlFor={`user-${user.user_id}`}>{user.username}</label>
+                    </li>
+                );
+            })}
+        </ul>
           <div className="pagination">
             {Array.from({ length: totalPages }, (_, index) => (
               <button
@@ -281,7 +289,7 @@ const UserProfileAdministrator = () => {
             {roles.length > 0 ? (
               roles.map(role => (
                 <div key={role.group_id} className="role-item">
-                  <input type="checkbox" id={`role-${role.group_id}`} />
+                  <input type="checkbox" id={`role-${role.group_id}`}  onChange={() => handleRoleChange(role.group_id)}/>
                   <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
                 </div>
               ))

@@ -10,12 +10,14 @@ import './Dashboard.css';
 import { Search, Schedule, Backup, Security } from '@mui/icons-material';
 import { Card, CardActionArea, CardContent, Typography, Container } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PeopleIcon from '@mui/icons-material/People';
+import DevicesIcon from '@mui/icons-material/Devices';
+import TaskIcon from '@mui/icons-material/Task';
 
 
 const DashboardCard = ({ title, description, icon, link }) => (
   <Card className="dashboard-card">
-    <Link to={link} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <CardActionArea>
+    <CardActionArea onClick={link}>
         <div className="card-icon-container">
           {icon}
         </div>
@@ -27,8 +29,7 @@ const DashboardCard = ({ title, description, icon, link }) => (
             <Typography variant="body2">{description}</Typography>
           </div>
         </CardContent>
-      </CardActionArea>
-    </Link>
+      </CardActionArea>   
   </Card>
 );
 
@@ -70,44 +71,55 @@ const Dashboard = () => {
         <button onClick={handleLogout} className="logout-button">Logout</button>
       </header>
       <main>
-      <Container maxWidth="lg" disableGutters>
+        <div className='hello-heading p0'>
+        <h3>Hello admin!</h3>
+        </div>
+      <Container maxWidth="lg" disableGutters> 
           <div className="dashboard-cards-container">
             <DashboardCard
               title="Discovery Management"
               description="Create, debug, and run workflows with Workflow Editor"
               icon={<Search fontSize="large" />}
-              link="discovery-management"
+              link={() => navigate("/discovery-management")}
             />
             <DashboardCard
               title="Schedule Management"
               description="Organize and monitor executions"
               icon={<Schedule fontSize="large" />}
-              link="backup-management"
+              link={() => navigate("/backup-management")}
             />
             <DashboardCard
               title="Backup Management"
               description="Schedule and manage jobs"
               icon={<Backup fontSize="large" />}
-              link="list-device"
+              link={() => navigate("/list-device")}
             />
             <DashboardCard
               title="User Profile Administrator"
               description="Create and manage authentications"
               icon={<Security fontSize="large" />}
-              link="create-user"
+              link={() => navigate("/user-profile-administrator")}             
             />
           </div>
-        </Container>
-        <Routes>
-          <Route path="discovery-management" element={<DiscoveryManagement />} />
-          <Route path="backup-management" element={<BackupManagement />} />
-          <Route path="list-device" element={<ListDevice />} />
-          <Route path="list-device/compare-backup/:hostname" element={<CompareBackup />} />
-          {/* <Route path="user-profile-administrator" element={<UserProfileAdministrator />} /> */}
-          <Route path="create-user" element={<UserProfileAdministrator />} />
-          {/* Default route inside Dashboard */}
-          <Route path="/" element={<Navigate to="discovery-management" />} />
-        </Routes>
+           {/* Stats Container */}
+<div className="stats-container">
+  <div className="stat-card">
+    <PeopleIcon className="stat-icon" fontSize="large" />
+    <h4>Total Users</h4>
+    <p>124</p>
+  </div>
+  <div className="stat-card">
+    <DevicesIcon className="stat-icon" fontSize="large" />
+    <h4>Active Devices</h4>
+    <p>87</p>
+  </div>
+  <div className="stat-card">
+    <TaskIcon className="stat-icon" fontSize="large" />
+    <h4>Pending Tasks</h4>
+    <p>16</p>
+  </div>
+</div>
+        </Container>        
       </main>
     </div>
   );
