@@ -30,6 +30,7 @@ body {
   border-radius: 5px;
   cursor: pointer;
   text-decoration: none;
+  font-size: 14px; 
 }
 
 .top-buttons .button:hover {
@@ -125,7 +126,7 @@ ul li input[type="checkbox"] {
   margin-bottom: 10px;
 }
 
-.message {
+/* .message {
   margin-top: 20px;
   padding: 10px;
   border-radius: 5px;
@@ -140,9 +141,9 @@ ul li input[type="checkbox"] {
 .message.error {
   background-color: #f8d7da;
   color: #721c24;
-}
+} */
 
-.popup {
+/* .popup {
   position: fixed;
   top: 0;
   left: 0;
@@ -178,4 +179,116 @@ ul li input[type="checkbox"] {
 
 .popup-buttons button:hover {
   background-color: #0056b3;
+} */
+
+/* Reset Password Popup specific styles */
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999; 
 }
+
+.popup-content {
+  background-color: white;
+  padding: 35px;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); 
+  transition: all 0.3s ease;
+}
+
+.popup-content h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+  text-align: left;
+  color: #333;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.1); 
+  transition: border 0.3s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #5c6bc0; /* Updated border color */
+  box-shadow: 0px 0px 8px rgba(92, 107, 192, 0.5); /* Box shadow matches border color */
+}
+
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.popup-buttons .btn-confirm,
+.popup-buttons .btn-cancel {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 45%; 
+}
+
+.popup-buttons .btn-confirm {
+  background-color: #5c6bc0;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.popup-buttons .btn-confirm:hover {
+  background-color: #3f51b5;
+}
+
+
+.popup-buttons .btn-cancel {
+  background-color: #dd3e58;
+  color: white;
+}
+
+.popup-buttons .btn-cancel:hover {
+  background-color: #c7324a;
+}
+
+.message {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.message.success {
+  background-color: #d4edda; 
+  padding:1%;
+  color: #28a745;
+}
+
+.message.error {
+  background-color: #f8d7da; 
+  padding:1%;
+  color: #dd3e58;
+}
+

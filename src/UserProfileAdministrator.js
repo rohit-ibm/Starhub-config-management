@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UserProfileAdministrator.css';
+import CreateUserForm from './CreateUser';
 
 const UserProfileAdministrator = () => {
   const [users, setUsers] = useState([]);
@@ -17,12 +18,22 @@ const UserProfileAdministrator = () => {
   const [selectedUserId, setSelectedUserId] = useState(0);
   const [selectedGroupId, setSelectedGroupId] = useState(0);
 
+  const [isCreateUserPopupOpen, setIsCreateUserPopupOpen] = useState(false);
+  const [createUserMessage, setCreateUSerMessage] = useState(''); 
+
   // State for popup and new password
   const [isResetPasswordPopupOpen, setIsResetPasswordPopupOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
   // State for delete confirmation
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState('');
+
+  //state for save
+  const [saveMessage, setSaveMessage] = useState(''); 
+
+
+
 
   // Fetch data on component mount
   useEffect(() => {
@@ -61,13 +72,16 @@ const UserProfileAdministrator = () => {
         user_id: selectedUserIds,
         group_id: selectedGroupId,
       });
-      setMessage('User added to group successfully!');
+      setSaveMessage('User added to group successfully!');
       // Optionally, reset the selected values
       setSelectedUserId(0);
       setSelectedGroupId(0);
+      setTimeout(() => {
+        setSaveMessage(''); // Reset save message after a delay
+      }, 2000);
     } catch (error) {
       console.error('Error adding user to group:', error);
-      setMessage('Error adding user to group. Please try again.');
+      setSaveMessage('Error adding user to group. Please try again.');
     }
   };
 
@@ -182,7 +196,7 @@ const UserProfileAdministrator = () => {
 
       if (response.ok) {
         const data = await response.json(); // Parse the JSON response
-        setMessage('Password reset successfully: ' + data.message); // Assuming your API sends a success message
+        setMessage(data.message); // Assuming your API sends a success message
         setUserId('');
         setNewPassword('');
       } else {
@@ -197,7 +211,7 @@ const UserProfileAdministrator = () => {
   // Handle Delete Users - Opens Confirmation Popup
   const handleDeleteUsers = () => {
     if (selectedUserIds.length === 0) {
-      setMessage("Please select a user to delete.");
+      setDeleteMessage("Please select a user to delete.");
       setIsError(true);
       return;
     }
@@ -210,13 +224,19 @@ const UserProfileAdministrator = () => {
 
     axios.delete(`http://9.46.112.167:8001/delete_user/${userId}`)
       .then(() => {
-        setMessage('User deleted successfully.');
+        setDeleteMessage('User deleted successfully.');
         setIsError(false);
         fetchUsers(); // Refresh the user list
-        setIsDeleteConfirmationOpen(false); // Close confirmation popup
-      })
+        //setIsDeleteConfirmationOpen(false); // Close confirmation popup
+         // Delay closing the popup to show the message
+      setTimeout(() => {
+        setIsDeleteConfirmationOpen(false);
+        setDeleteMessage(''); // Reset delete message after closing
+      }, 2000); // Adjust the delay as necessary (2000 ms = 2 seconds)
+    })
+      
       .catch(error => {
-        setMessage('Error deleting user.');
+        setDeleteMessage('Error deleting user.');
         setIsError(true);
         console.error('Error deleting user:', error);
       });
@@ -227,6 +247,46 @@ const UserProfileAdministrator = () => {
     setIsDeleteConfirmationOpen(false);
   };
 
+  // Handle Reset Password - Opens Popup
+  const handlePasswordReset = () => {
+    if (!selectedUserIds) {
+      alert('Please select the user to reset password.');
+      return;
+    }
+    setIsResetPasswordPopupOpen(true);
+  };
+
+  // Function to open create user popup
+const handleCreateUserOpen = () => {
+  setIsCreateUserPopupOpen(true);
+};
+
+// Function to close create user popup
+const handleCreateUserClose = () => {
+  setIsCreateUserPopupOpen(false);
+};
+
+// Function to handle user creation
+const handleCreateUser = async (username, password, email) => {
+  try {
+      const response = await axios.post('http://9.46.112.167:8001/create_user', {
+          username,
+          password,
+          email,
+      });
+      setCreateUSerMessage('User created successfully!');
+      setIsError(false);
+      fetchUsers();
+      setTimeout(() => {
+          setIsCreateUserPopupOpen(false); // Close popup after successful creation
+      }, 3000);
+  } catch (error) {
+    setCreateUSerMessage('There was an error creating the user.');
+      setIsError(true);
+  }
+};
+
+
   // Pagination logic
   const usersPerPage = 8;
   const totalPages = Math.ceil(users.length / usersPerPage);
@@ -236,7 +296,8 @@ const UserProfileAdministrator = () => {
     <div className="user-profile-administrator">
       <h2>User Profile Administrator</h2>
       <div className="top-buttons">
-        <Link to="/create-user" className="button">Create User</Link>
+      <button onClick={handleCreateUserOpen} className="button">Create User</button>
+        {/* <Link to="/create-user" className="button">Create User</Link> */}
         <button onClick={handleResetPassword} className="button">Reset Password</button>
         <button onClick={handleDeleteUsers} className="button">Delete User</button>
         <button onClick={handleSave} className="button">Save</button>
@@ -315,66 +376,59 @@ const UserProfileAdministrator = () => {
           </div>
         </div>
       </div>
+              {isResetPasswordPopupOpen && (
+                <div className="popup">
+                  <div className="popup-content">
+                    <h2>Reset Password</h2>
+                    <form onSubmit={handleSubmit}>
+                      <div className="input-group">
+                        <label htmlFor="newPassword">New Password:</label>
+                        <input
+                          id="newPassword"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="popup-buttons">
+                        <button type="submit" className="btn-confirm">Reset Password</button>
+                        <button type="button" className="btn-cancel" onClick={handleCloseResetPasswordPopup}>Cancel</button>
+                      </div>
+                    </form>
 
-      {/* Reset Password Popup */}
-      {isResetPasswordPopupOpen && (
-        <div className="popup">
-          <div className="popup-content">
-            {/* <h3>Reset Password</h3>
-            <input
-              type="password"
-              placeholder="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <div className="popup-buttons">
-              <button onClick={handleSubmitNewPassword}>Submit</button>
-              <button onClick={handleCloseResetPasswordPopup}>Cancel</button>
-            </div> */}
-
-            <div>
-              <h2>Reset Password</h2>
-              <form onSubmit={handleSubmit}>
-
-
-                <div>
-                  <label htmlFor="newPassword">New Password:</label>
-                  <input
-                    id="newPassword"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
+                    {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</p>}
+                  </div>
                 </div>
-                <div className="popup-buttons">
-                  <button type="submit">Reset Password</button>
-                  <button onClick={handleCloseResetPasswordPopup}>Cancel</button>
+              )}
+
+
+            {isCreateUserPopupOpen && (
+                <div className="popup">
+                    <div className="popup-content">
+                        <h2>Create User</h2>
+                        <CreateUserForm onCreateUser={handleCreateUser} onClose={handleCreateUserClose} />
+                        {createUserMessage && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{createUserMessage}</p>}
+                    </div>
                 </div>
+            )}
 
-              </form>
-
-
-
-              {message && <p>{message}</p>}
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Popup */}
       {isDeleteConfirmationOpen && (
-        <div className="popup">
-          <div className="popup-content">
-            <h3>Are you sure you want to delete this user?</h3>
-            <div className="popup-buttons">
-              <button onClick={handleConfirmDelete}>Yes</button>
-              <button onClick={handleCloseDeletePopup}>No</button>
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="popup">
+    <div className="popup-content">
+      <h2>Confirm Deletion</h2>
+      <p>Are you sure you want to delete the selected user(s)?</p>
+      <div className="popup-buttons">
+        <button onClick={handleConfirmDelete} className="btn-confirm">Yes</button>
+        <button onClick={handleCloseDeletePopup} className="btn-cancel">No</button>
+      </div>
+      {deleteMessage && <p className={`message ${deleteMessage.includes('Error') ? 'error' : 'success'}`}>{deleteMessage}</p>} 
+    </div>
+  </div>
+)}
+ {saveMessage && <p className={`message ${saveMessage.includes('Error') ? 'error' : 'success'}`}>{saveMessage}</p>}
     </div>
   );
 };
