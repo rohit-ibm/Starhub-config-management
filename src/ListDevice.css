@@ -13,7 +13,7 @@ table {
   th, td {
     padding: 8px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border: 1px solid #ddd;
   }
 
   .download-button {
@@ -28,4 +28,11 @@ table {
   .download-button:hover {
     background-color: #0056b3;
   }
-  
+
+  .success{
+    background-color: #5cb85c;
+  }
+
+  .failed{
+    background-color: #fa113d;
+  }

@@ -5,11 +5,13 @@ import './Login.css';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
+import imageURL from '../src/Assets/IBM_LOGO.svg';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [response, setResponse] = useState('');  
   const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
   const handleClose = () => {
@@ -19,7 +21,7 @@ const Login = () => {
     setOpen(true);
   };
 
-  const handleLogin = async (e) => {
+  const handleTokenLogin = async (e) => {
     e.preventDefault();
     setOpen(true);  
     setError('');
@@ -34,6 +36,36 @@ const Login = () => {
       if (response.status === 200 && response.data) {
         localStorage.setItem('token', response.data);
         navigate('/dashboard');
+        sessionStorage.setItem("isAuthenticated", true)
+      } else {
+        setOpen(false);
+        setError('Invalid username or password');
+      }
+    } catch (error) {
+      setError('Failed to login');
+      console.error('Login error:', error);
+    }
+  };
+  
+  const handleLocalLogin = async (e) => {
+    e.preventDefault();
+    setOpen(true);  
+    setError('');
+    try {
+      const response = await axios.post(`http://9.46.112.167:8001/login`, {
+        username: username,
+        password: password,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      setResponse(response);
+
+      if (response.status === 200 && response.data) {
+        localStorage.setItem('token', response.data);
+        navigate('/dashboard');
+        sessionStorage.setItem("isAuthenticated", true)
       } else {
         setOpen(false);
         setError('Invalid username or password');
@@ -47,12 +79,12 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM' />
+        <img src={imageURL} alt='IBM' />
         <h1>Sign In</h1>
         <div>
           Login to your account
         </div>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={username === "admin"? handleTokenLogin : handleLocalLogin}>
           <div className='username-container'>
             <div>Username *</div>
             <input

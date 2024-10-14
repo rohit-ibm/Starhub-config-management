@@ -100,3 +100,11 @@
     margin: 0 5px;
     background-color: #fff;
   }
+
+  .success{
+    background-color: #5cb85c;
+  }
+
+  .failed{
+    background-color: #fa113d;
+  }
