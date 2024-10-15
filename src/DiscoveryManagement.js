@@ -12,7 +12,7 @@ const App = () => {
   const [allDevices, setAllDevices] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const devicesPerPage = 10; 
+  const devicesPerPage = 10;
 
   const staticDeviceGroups = [
     {
@@ -86,10 +86,10 @@ const App = () => {
   };
 
   const handleSearch = () => {
-    const filteredDevices = allDevices.filter(device => 
-    device.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredDevices = allDevices.filter(device =>
+      device.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setDeviceGroupDetails({ devices: filteredDevices });
   };
@@ -142,11 +142,11 @@ const App = () => {
         <button onClick={handleDiscoverDevice} className="discover-button">Discover All</button>
       </div>
       <div className="search-container">
-        <input 
-          type="text" 
-          placeholder="Search by hostname, IP address or location" 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
+        <input
+          type="text"
+          placeholder="Search by hostname, IP address or location"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
         <button onClick={handleSearch} className="search-button">Search</button>
@@ -163,21 +163,33 @@ const App = () => {
                 <th className="tableHeader">IP Address</th>
                 <th className="tableHeader">Location</th>
                 <th className="tableHeader">Device Type</th>
-                <th className="tableHeader">Backup Status</th>  
-                <th className="tableHeader">Last Backup Time </th>             
+                <th className="tableHeader">Backup Status</th>
+                <th className="tableHeader">Last Backup Time </th>
               </tr>
             </thead>
             <tbody>
               {currentDevices.map((device, index) => (
-                <tr key={index}>
-                  <td className="tableCell">{device.id}</td>
-                  <td className="tableCell">{device.hostname}</td>
-                  <td className="tableCell">{device.ip_address}</td>
-                  <td className="tableCell">{device.location}</td>
-                  <td className="tableCell">{device.device_type}</td>
-                  <td className="tableCell">{device.backup_status}</td>   
-                  <td className="tableCell">{device.last_backup_time}</td>              
-                </tr>
+                device.backup_status === "Success" ? (
+                  <tr key={index}>
+                    <td className="tableCell">{device.id}</td>
+                    <td className="tableCell">{device.hostname}</td>
+                    <td className="tableCell">{device.ip_address}</td>
+                    <td className="tableCell">{device.location}</td>
+                    <td className="tableCell">{device.device_type}</td>
+                    <td className="tableCell success">{device.backup_status}</td>
+                    <td className="tableCell">{device.last_backup_time}</td>
+                  </tr>)
+                  : (
+                    <tr key={index}>
+                      <td className="tableCell">{device.id}</td>
+                      <td className="tableCell">{device.hostname}</td>
+                      <td className="tableCell">{device.ip_address}</td>
+                      <td className="tableCell">{device.location}</td>
+                      <td className="tableCell">{device.device_type}</td>
+                      <td className="tableCell failed">{device.backup_status}</td>
+                      <td className="tableCell">{device.last_backup_time}</td>
+                    </tr>
+                  )
               ))}
             </tbody>
           </table>
@@ -196,18 +208,18 @@ const App = () => {
 const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
   return (
     <div className="pagination">
-      <button 
-        onClick={handlePrevPage} 
-        disabled={currentPage === 1} 
+      <button
+        onClick={handlePrevPage}
+        disabled={currentPage === 1}
         className="page-link">
         {'<'}
       </button>
       <span className="page-info">
         Page <span className="current-page">{currentPage}</span> of {totalPages}
       </span>
-      <button 
-        onClick={handleNextPage} 
-        disabled={currentPage === totalPages} 
+      <button
+        onClick={handleNextPage}
+        disabled={currentPage === totalPages}
         className="page-link">
         {'>'}
       </button>

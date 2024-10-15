@@ -90,7 +90,7 @@ const ListDevice = () => {
       </div>
       <div className="list-device">
         <h2>Device Backup Information</h2>
-        <table>
+        <table className='ld-table'>
           <thead>
             <tr>
               <th>Device Name</th>
@@ -103,15 +103,26 @@ const ListDevice = () => {
           <tbody>
             {currentDevices.length > 0 ? (
               currentDevices.map((device, index) => (
+                device.backup_status === "Success"? (
                 <tr key={index}>
                   <td>
                     <Link to={`compare-backup/${device.hostname}`}>{device.hostname}</Link>
                   </td>
                   <td>{device.ip_address}</td>
                   <td>{device.device_group}</td>
-                  <td>{device.backup_status}</td>
+                  <td className='success'>{device.backup_status}</td>
+                  <td><button onClick={() => handleDownloadAll(device.hostname)} className="download-button">Download All</button></td>
+                </tr>):(
+                  <tr key={index} >
+                  <td>
+                    <Link to={`compare-backup/${device.hostname}`}>{device.hostname}</Link>
+                  </td>
+                  <td>{device.ip_address}</td>
+                  <td>{device.device_group}</td>
+                  <td className='failed'>{device.backup_status}</td>
                   <td><button onClick={() => handleDownloadAll(device.hostname)} className="download-button">Download All</button></td>
                 </tr>
+                )
               ))
             ) : (
               <tr>

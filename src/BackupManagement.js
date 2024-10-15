@@ -6,6 +6,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ClipLoader } from 'react-spinners';
 import deviceLoader from './device-loader-img.gif';
+import { TableRows } from '@mui/icons-material';
+import { TableCell } from '@mui/material';
 
 
 const App = () => {
@@ -456,6 +458,7 @@ const App = () => {
           </div>
           
           <table className="table">
+            
             <thead>
               <tr>
                 <th className="tableHeader">Select</th>
@@ -470,6 +473,7 @@ const App = () => {
             </thead>
             <tbody>
               {currentDevices.map(device => (
+                device.backup_status === "Success" ? (
                 <tr key={device.hostname}>
                   <td>
                     <input
@@ -483,12 +487,33 @@ const App = () => {
                   <td className="tableCell">{device.ip_address}</td>
                   <td className="tableCell">{device.location}</td>
                   <td className="tableCell">{device.device_type}</td>
-                  <td className="tableCell">{device.backup_status}</td>
+                  <td className="tableCell success">{device.backup_status}</td>
                   <td className="tableCell">{device.next_backup_time}</td>
                 </tr>
+                )
+                :
+                (
+                  <tr key={device.hostname}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedDevices.includes(device.hostname)}
+                      onChange={(e) => handleSelectDevice(e, device.hostname)}
+                    />
+                  </td>
+                  <td className="tableCell">{device.id}</td>
+                  <td className="tableCell">{device.hostname}</td>
+                  <td className="tableCell">{device.ip_address}</td>
+                  <td className="tableCell">{device.location}</td>
+                  <td className="tableCell">{device.device_type}</td>
+                  <td className="tableCell failed">{device.backup_status}</td>
+                  <td className="tableCell">{device.next_backup_time}</td>
+                </tr>
+                )
               ))}
             </tbody>
           </table>
+          
           {/* <div className="pagination">
             {currentPage > 1 && (
               <button onClick={handlePrevPage} className="pagination-button">Previous</button>
