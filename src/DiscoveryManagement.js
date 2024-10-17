@@ -125,6 +125,8 @@ const App = () => {
   const currentDevices = deviceGroupDetails?.devices.slice(indexOfFirstDevice, indexOfLastDevice);
   const totalPages = Math.ceil((deviceGroupDetails?.devices.length || 0) / devicesPerPage);
 
+
+  
   return (
     <div className="container">
       {/* <h1 className="header">Device Groups</h1> */}

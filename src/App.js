@@ -10,7 +10,9 @@ import UserProfileAdministrator from './UserProfileAdministrator';
 import CompareBackup from './CompareBackup';
 import ViewFile from './ViewFile';
 import CompareFiles from './CompareFiles';
-import './App.css';                                 
+import './App.css';
+import NavBar from './components/navbar/NavBar';
+
 
 
 function App() {
@@ -28,15 +30,15 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard/*" element={<Dashboard />} />
-          <Route path="/discovery-management" element={<DiscoveryManagement />} />
-          <Route path="/backup-management" element={<BackupManagement />} />
-          <Route path="/list-device" element={<ListDevice />} />
-          <Route path="/list-device/compare-backup/:hostname" element={<CompareBackup />} />
-          <Route path="/view-file/:hostname/:filename" element={<ViewFile />} />
-          <Route path="/compare-files/:hostname" element={<CompareFiles />} />
-          <Route path="user-profile-administrator" element={<UserProfileAdministrator />} />
-          <Route path="/create-user" element={<CreateUser />} />
+          <Route path="/dashboard/*" element={<ProtectedRoute element={<><NavBar/><Dashboard /></>}/>}/>
+          <Route path="/discovery-management" element={<ProtectedRoute element={<><NavBar/><DiscoveryManagement /></>}/>}/>
+          <Route path="/backup-management" element={<ProtectedRoute element={<><NavBar/><BackupManagement /></>}/>}/>
+          <Route path="/list-device" element={<ProtectedRoute element={<><NavBar/><ListDevice /></>}/>}/>
+          <Route path="/list-device/compare-backup/:hostname"element={<ProtectedRoute element={<><NavBar/><CompareBackup /></>}/>}/>
+          <Route path="/view-file/:hostname/:filename" element={<ProtectedRoute element={<><NavBar/><ViewFile /></>}/>} />
+          <Route path="/compare-files/:hostname" element={<ProtectedRoute element={<><NavBar/><CompareFiles /></>}/>}/>
+          <Route path="user-profile-administrator" element={<ProtectedRoute element={<><NavBar/><UserProfileAdministrator /></>}/>}/>
+          <Route path="/create-user" element={<ProtectedRoute element={<><NavBar/><CreateUser /></>}/>}/>
           <Route path="/" element={<Navigate to="/dashboard/discovery-management" />} />
         </Routes>
       </div>
