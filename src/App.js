@@ -14,6 +14,15 @@ import './App.css';
 
 
 function App() {
+
+  const isAuthenticated = () => {
+    return sessionStorage.getItem('isAuthenticated') === 'true';
+  };
+
+  const ProtectedRoute = ({ element }) => {
+    return isAuthenticated() ? element : <Navigate to="/login" />;
+  };
+
   return (
     <Router>
       <div className="App">
