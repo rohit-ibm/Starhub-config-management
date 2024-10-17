@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  rbac-api:
+    image: rbac-api
+    build: .
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - .:/app
