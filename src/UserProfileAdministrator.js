@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UserProfileAdministrator.css';
 import CreateUserForm from './CreateUser';
+import Navbar from './Navbar'; 
 
 const UserProfileAdministrator = () => {
   const [users, setUsers] = useState([]);
@@ -15,7 +16,7 @@ const UserProfileAdministrator = () => {
   const [isError, setIsError] = useState(false);
   const [userId, setUserId] = useState('');
   const [groups, setGroups] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState(0);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [selectedGroupId, setSelectedGroupId] = useState(0);
 
   const [isCreateUserPopupOpen, setIsCreateUserPopupOpen] = useState(false);
@@ -31,6 +32,11 @@ const UserProfileAdministrator = () => {
 
   //state for save
   const [saveMessage, setSaveMessage] = useState(''); 
+  const [userGroups, setUserGroups] = useState([]);
+  const [originalUserGroups, setOriginalUserGroups] = useState([]);
+
+  
+
 
 
 
@@ -38,52 +44,102 @@ const UserProfileAdministrator = () => {
   // Fetch data on component mount
   useEffect(() => {
 
+    // const fetchUsers = async () => {
+    //   try {
+    //     const response = await axios.get('http://9.46.112.167:8001/users');
+    //     setUsers(response.data); // Adjust based on actual response structure
+    //   } catch (error) {
+    //     console.error('Error fetching users:', error);
+    //   }
+    // };
 
-
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('http://9.46.112.167:8001/users');
-        setUsers(response.data); // Adjust based on actual response structure
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
-
-    // Fetch groups
-    const fetchGroups = async () => {
-      try {
-        const response = await axios.get('http://9.46.112.167:8001/groups');
-        setGroups(response.data); // Adjust based on actual response structure
-      } catch (error) {
-        console.error('Error fetching groups:', error);
-      }
-    };
+    // // Fetch groups
+    // const fetchGroups = async () => {
+    //   try {
+    //     const response = await axios.get('http://9.46.112.167:8001/groups');
+    //     setGroups(response.data); // Adjust based on actual response structure
+    //   } catch (error) {
+    //     console.error('Error fetching groups:', error);
+    //   }
+    // };
 
     // Call the fetch functions
     fetchUsers();
-    fetchGroups();
+    //fetchGroups();
     fetchRoles();
     fetchPermissions();
   }, []);
 
   const handleSave = async () => {
-    try {
-      const response = await axios.post('http://9.46.112.167:8001/add_user_to_group', {
-        user_id: selectedUserIds,
-        group_id: selectedGroupId,
-      });
-      setSaveMessage('User added to group successfully!');
-      // Optionally, reset the selected values
-      setSelectedUserId(0);
-      setSelectedGroupId(0);
-      setTimeout(() => {
-        setSaveMessage(''); // Reset save message after a delay
-      }, 2000);
-    } catch (error) {
-      console.error('Error adding user to group:', error);
-      setSaveMessage('Error adding user to group. Please try again.');
+    console.log("Entering save");
+
+    if (!selectedUserIds) {
+        setSaveMessage('Please select a user before saving changes.');
+        setIsError(true);
+        // Clear message after 3 seconds
+        setTimeout(() => setSaveMessage(''), 3000);
+        return;
     }
-  };
+
+    try {
+        const groupsToAdd = userGroups.filter(group => !originalUserGroups.includes(group));
+        const groupsToRemove = originalUserGroups.filter(group => !userGroups.includes(group));
+
+        console.log('Groups to Add:', groupsToAdd);
+        console.log('Groups to Remove:', groupsToRemove);
+
+        if (groupsToAdd.length === 0 && groupsToRemove.length === 0) {
+            console.log('No changes detected, skipping save.');
+            setSaveMessage('No changes made.');
+            setIsError(false);
+            // Clear message after 3 seconds
+            setTimeout(() => setSaveMessage(''), 3000);
+            return;
+        }
+
+        const addPromises = groupsToAdd.map(async groupName => {
+            const group = roles.find(role => role.group_name === groupName);
+            if (group) {
+                const payload = { user_id: selectedUserIds, group_id: group.group_id };
+                console.log('Payload to add:', payload);
+                return axios.post('http://9.46.112.167:8001/add_user_to_group', payload);
+            }
+        });
+
+        const removePromises = groupsToRemove.map(async groupName => {
+            const group = roles.find(role => role.group_name === groupName);
+            if (group) {
+                const payload = { user_id: selectedUserIds, group_id: group.group_id };
+                console.log('Payload for removing group:', payload);
+                return axios.delete('http://9.46.112.167:8001/remove_user_from_group', { data: payload });
+            }
+        });
+
+        await Promise.all([...addPromises, ...removePromises]);
+
+        // Refresh user groups data after the operations
+        await fetchUserGroups(selectedUserIds);
+
+        setSaveMessage('User groups updated successfully!');
+        setIsError(false);
+        // Clear message after 3 seconds
+        setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+        console.error('Error updating user groups:', error);
+        if (error.response) {
+            console.log('Error response:', error.response.data);
+            setSaveMessage(`Error updating user groups: ${error.response.data.detail || 'Please try again.'}`);
+        } else {
+            setSaveMessage('Error updating user groups. Please try again.');
+        }
+        setIsError(true);
+        // Clear message after 3 seconds
+        setTimeout(() => setSaveMessage(''), 3000);
+    }
+};
+
+  
+
 
   // Fetch users from API
   const fetchUsers = () => {
@@ -120,6 +176,20 @@ const UserProfileAdministrator = () => {
       });
   };
 
+  const fetchUserGroups = async (userId) => {
+    try {
+      const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`);
+      const userGroupNames = response.data.map(group => group.group_name);
+      setUserGroups(userGroupNames);
+      setOriginalUserGroups(userGroupNames); // Store the original groups
+    } catch (error) {
+      console.error('Error fetching user groups:', error);
+      setMessage('Error fetching user groups. Please try again.');
+      setIsError(true);
+    }
+  };
+  
+
   // Handle search functionality
   const handleSearch = () => {
     axios.get('http://9.46.112.167:8001/users')
@@ -134,16 +204,24 @@ const UserProfileAdministrator = () => {
       });
   };
 
-  // Handle checkbox change for user selection
   const handleCheckboxChange = (userId) => {
-    console.log("Selected User ID:", userId);
-    setSelectedUserIds(userId); // Replace the current array with only the newly selected userId
+    setSelectedUserIds(userId);
+    fetchUserGroups(userId); // Fetch groups for the selected user
   };
 
-  // onChange handler for role selection for save
-     const handleRoleChange = (groupId) => {
-        setSelectedGroupId(groupId);
-      };
+
+  const handleUserSelection = (userId) => {
+    setSelectedUserId(userId);
+    fetchUserGroups(userId);
+  };
+
+  const handleRoleChange = (groupName) => {
+    setUserGroups(prevGroups => 
+      prevGroups.includes(groupName)
+        ? prevGroups.filter(name => name !== groupName)
+        : [...prevGroups, groupName]
+    );
+  };
 
   // Handle Reset Password - Opens Popup
   const handleResetPassword = () => {
@@ -172,6 +250,7 @@ const UserProfileAdministrator = () => {
   const handleCloseResetPasswordPopup = () => {
     setIsResetPasswordPopupOpen(false);
     setNewPassword(''); // Clear the password input
+    setMessage(''); 
   };
 
 
@@ -196,9 +275,12 @@ const UserProfileAdministrator = () => {
 
       if (response.ok) {
         const data = await response.json(); // Parse the JSON response
-        setMessage(data.message); // Assuming your API sends a success message
+        setMessage(data.message);
         setUserId('');
         setNewPassword('');
+        setTimeout(() => {
+          setIsResetPasswordPopupOpen(false); 
+      }, 3000);
       } else {
         const errorData = await response.json(); // Handle error response
         setMessage(`Error: ${errorData.message}`); // Display specific error message from the server
@@ -227,12 +309,10 @@ const UserProfileAdministrator = () => {
         setDeleteMessage('User deleted successfully.');
         setIsError(false);
         fetchUsers(); // Refresh the user list
-        //setIsDeleteConfirmationOpen(false); // Close confirmation popup
-         // Delay closing the popup to show the message
       setTimeout(() => {
         setIsDeleteConfirmationOpen(false);
-        setDeleteMessage(''); // Reset delete message after closing
-      }, 2000); // Adjust the delay as necessary (2000 ms = 2 seconds)
+        setDeleteMessage(''); 
+      }, 2000); 
     })
       
       .catch(error => {
@@ -295,13 +375,28 @@ const handleCreateUser = async (username, password, email) => {
   return (
     <div className="user-profile-administrator">
       <h2>User Profile Administrator</h2>
-      <div className="top-buttons">
+
+      <div className="action-boxes">
+      <div className="action-box" onClick={handleCreateUserOpen}>
+        <h3>Create User</h3>
+      </div>
+      <div className="action-box" onClick={handleResetPassword}>
+        <h3>Reset Password</h3>
+      </div>
+      <div className="action-box" onClick={handleDeleteUsers}>
+        <h3>Delete User</h3>
+      </div>
+      <div className="action-box" onClick={handleSave}>
+        <h3>Save</h3>
+      </div>
+    </div>
+      {/* <div className="top-buttons">
       <button onClick={handleCreateUserOpen} className="button">Create User</button>
-        {/* <Link to="/create-user" className="button">Create User</Link> */}
+        {/* <Link to="/create-user" className="button">Create User</Link> 
         <button onClick={handleResetPassword} className="button">Reset Password</button>
         <button onClick={handleDeleteUsers} className="button">Delete User</button>
         <button onClick={handleSave} className="button">Save</button>
-      </div>
+      </div> */}
       {/* {message && (
         <div className={`message ${isError ? 'error' : 'success'}`}>
           {message}
@@ -324,7 +419,7 @@ const handleCreateUser = async (username, password, email) => {
             {displayedUsers.map(user => {               
                 return (
                   <li key={user.user_id}>
-                        <input type="checkbox"   id={`user-${user.user_id}`}  onChange={() => handleCheckboxChange(user.user_id)}  />
+                        <input type="checkbox"   id={`user-${user.user_id}`}  checked={selectedUserIds === user.user_id} onChange={() => handleCheckboxChange(user.user_id)}  />
                         <label htmlFor={`user-${user.user_id}`}>{user.username}</label>
                     </li>
                 );
@@ -350,7 +445,10 @@ const handleCreateUser = async (username, password, email) => {
             {roles.length > 0 ? (
               roles.map(role => (
                 <div key={role.group_id} className="role-item">
-                  <input type="checkbox" id={`role-${role.group_id}`}  onChange={() => handleRoleChange(role.group_id)}/>
+                  <input type="checkbox" id={`role-${role.group_id}`}
+                   checked={userGroups.includes(role.group_name)} 
+                  onChange={() => handleRoleChange(role.group_name)}
+                  />
                   <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
                 </div>
               ))

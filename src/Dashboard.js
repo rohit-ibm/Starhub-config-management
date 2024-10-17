@@ -16,6 +16,7 @@ import TaskIcon from '@mui/icons-material/Task';
 import imageURL from '../src/Assets/IBM_LOGO.svg';
 
 
+
 const DashboardCard = ({ title, description, icon, link }) => (
   <Card className="dashboard-card">
     <CardActionArea onClick={link}>
@@ -70,7 +71,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <button onClick={handleLogout} className="logout-button">Logout</button>
+        <button onClick={handleLogout} className="logout-button">Logout</button> 
       </header>
       <main>
         <div className='hello-heading p0'>

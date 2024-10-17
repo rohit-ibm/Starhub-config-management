@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { diffWords } from 'diff';
 import axios from 'axios';
 import './CompareBackup.css';
@@ -16,6 +16,7 @@ const CompareBackup = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const filesPerPage = 10; // Adjust the number of files per page as needed
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch data from the API
@@ -47,39 +48,51 @@ const CompareBackup = () => {
   };
 
   const handleDisplaySelected = () => {
-    const fileFetchPromises = selectedFiles.map((filename) => {
-      return axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
-        .then((response) => ({ [filename]: response.data }))
-        .catch((error) => {
-          console.error('Error fetching file content:', error);
-          return { [filename]: '' }; // Return empty content on error
-        });
-    });
-
-    Promise.all(fileFetchPromises).then((fileDataArray) => {
-      const newFileContents = fileDataArray.reduce((acc, curr) => {
-        return { ...acc, ...curr };
-      }, {});
-      setFileContents(newFileContents);
-      setViewedFileContent('');
-      setViewedFileName('');
-
-      if (selectedFiles.length === 2) {
-        const [file1, file2] = selectedFiles;
-        const diff = diffWords(newFileContents[file1], newFileContents[file2]);
-        setDiffResult(diff);
-      }
-    });
+    if (selectedFiles.length === 2) {
+      navigate(`/compare-files/${hostname}`, { state: { selectedFiles } });
+    } else {
+      alert('Please select exactly 2 files to compare.');
+    }
   };
+  
 
+  // const handleDisplaySelected = () => {
+  //   const fileFetchPromises = selectedFiles.map((filename) => {
+  //     return axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
+  //       .then((response) => ({ [filename]: response.data }))
+  //       .catch((error) => {
+  //         console.error('Error fetching file content:', error);
+  //         return { [filename]: '' }; // Return empty content on error
+  //       });
+  //   });
+
+  //   Promise.all(fileFetchPromises).then((fileDataArray) => {
+  //     const newFileContents = fileDataArray.reduce((acc, curr) => {
+  //       return { ...acc, ...curr };
+  //     }, {});
+  //     setFileContents(newFileContents);
+  //     setViewedFileContent('');
+  //     setViewedFileName('');
+
+  //     if (selectedFiles.length === 2) {
+  //       const [file1, file2] = selectedFiles;
+  //       const diff = diffWords(newFileContents[file1], newFileContents[file2]);
+  //       setDiffResult(diff);
+  //     }
+  //   });
+  // };
+
+  // const handleView = (filename) => {
+  //   axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
+  //     .then((response) => {
+  //       setViewedFileName(filename);
+  //       setViewedFileContent(response.data);
+  //       setDiffResult(null); // Clear diff result when viewing a file
+  //     })
+  //     .catch((error) => console.error('Error fetching file content:', error));
+  // };
   const handleView = (filename) => {
-    axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
-      .then((response) => {
-        setViewedFileName(filename);
-        setViewedFileContent(response.data);
-        setDiffResult(null); // Clear diff result when viewing a file
-      })
-      .catch((error) => console.error('Error fetching file content:', error));
+    navigate(`/view-file/${hostname}/${filename}`);
   };
 
   const handleDownload = (filename) => {
@@ -273,3 +286,141 @@ const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages })
 };
 
 export default CompareBackup;
+
+
+
+
+
+// import React, { useState, useEffect } from 'react';
+// import { useParams, useNavigate } from 'react-router-dom';
+// import { DataGrid } from '@mui/x-data-grid';
+// import axios from 'axios';
+// import './CompareBackup.css';
+
+// const CompareBackup = () => {
+//   const { hostname } = useParams(); // Get the device name from the URL params
+//   const [backupFiles, setBackupFiles] = useState([]);
+//   const [filteredBackupFiles, setFilteredBackupFiles] = useState([]);
+//   const [selectedFiles, setSelectedFiles] = useState([]);
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const fetchBackupFiles = async () => {
+//       try {
+//         const response = await axios.get(`http://9.46.66.96:9000/config_files/list?hostname=${hostname}`);
+//         const reversedFiles = response.data.reverse(); // Reverse the order of files
+//         setBackupFiles(reversedFiles);
+//         setFilteredBackupFiles(reversedFiles);
+//       } catch (error) {
+//         console.error('Error fetching backup files:', error);
+//       }
+//     };
+
+//     fetchBackupFiles();
+//   }, [hostname]);
+
+//   const handleCheckboxChange = (selectionModel) => {
+//     if (selectionModel.length <= 2) {
+//       setSelectedFiles(selectionModel);
+//     } else {
+//       alert('You can only select up to 2 files.');
+//     }
+//   };
+
+//   const handleDisplaySelected = () => {
+//     if (selectedFiles.length === 2) {
+//       console.log('Selected Files:', selectedFiles);
+//       navigate(`/compare-files/${hostname}`, { state: { selectedFiles } });
+//     } else {
+//       alert('Please select exactly 2 files to compare.');
+//     }
+//   };
+
+//   const handleView = (filename) => {
+//     navigate(`/view-file/${hostname}/${filename}`);
+//   };
+
+//   const handleDownload = (filename) => {
+//     axios({
+//       url: `http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`,
+//       method: 'GET',
+//       responseType: 'blob',
+//     })
+//       .then((response) => {
+//         const url = window.URL.createObjectURL(new Blob([response.data]));
+//         const link = document.createElement('a');
+//         link.href = url;
+//         link.setAttribute('download', filename);
+//         document.body.appendChild(link);
+//         link.click();
+//         link.parentNode.removeChild(link);
+//       })
+//       .catch((error) => {
+//         console.error('Error downloading file:', error);
+//       });
+//   };
+
+//   const handleSearch = () => {
+//     const term = searchTerm.toLowerCase();
+//     const filteredFiles = backupFiles.filter((file) =>
+//       file.filename.toLowerCase().includes(term) || file.hostname.toLowerCase().includes(term)
+//     );
+//     setFilteredBackupFiles(filteredFiles);
+//   };
+
+//   const columns = [
+//     { field: 'filename', headerName: 'File Name', width: 300 },
+//     { field: 'hostname', headerName: 'Hostname', width: 200 },
+//     {
+//       field: 'last_modified',
+//       headerName: 'Backup Time',
+//       width: 200,
+//       renderCell: (params) => new Date(params.value).toLocaleString(),
+//     },
+//     {
+//       field: 'actions',
+//       headerName: 'Action',
+//       width: 200,
+//       renderCell: (params) => (
+//         <>
+//           <button onClick={() => handleView(params.row.filename)} className="view-button">View</button>
+//           <button onClick={() => handleDownload(params.row.filename)} className="download-button">Download</button>
+//         </>
+//       ),
+//     },
+//   ];
+
+//   return (
+//     <div className="compare-backup">
+//       <h2>Compare Backup Files</h2>
+//       <div className="search-container">
+//         <input
+//           type="text"
+//           placeholder="Search by hostname or filename"
+//           value={searchTerm}
+//           onChange={(e) => setSearchTerm(e.target.value)}
+//           className="search-input"
+//         />
+//         <button onClick={handleSearch} className="search-button">Search</button>
+//       </div>
+
+//       <div style={{ height: 400, width: '100%' }}>
+//         <DataGrid
+//           rows={filteredBackupFiles.map((file, index) => ({ id: index, ...file }))}
+//           columns={columns}
+//           checkboxSelection
+//           onSelectionModelChange={handleCheckboxChange}
+//           pageSize={10}
+//           rowsPerPageOptions={[10]}
+//         />
+//       </div>
+
+//       <button onClick={handleDisplaySelected} className="compare-button">
+//         Display and compare selected config files
+//       </button>
+//     </div>
+//   );
+// };
+
+// export default CompareBackup;

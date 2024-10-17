@@ -9,7 +9,7 @@ body {
   font-family: Roboto, Helvetica Neue, sans-serif;
 }
 
-header {
+ header {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -46,7 +46,7 @@ header h1 {
 
 .logout-button:hover {
   background-color: #ff4b4b;
-}
+} */
 
 nav ul {
   display: flex;
@@ -70,7 +70,7 @@ main {
   padding: 1rem;
 }
 
-.settings-container {
+ .settings-container {
   position: relative;
 }
 
@@ -114,7 +114,7 @@ main {
 
 .dropdown ul li:hover {
   background-color: #f1f3fe;
-}
+} 
 
 
 .dashboard-cards-container {
@@ -127,7 +127,7 @@ main {
 
 .dashboard-card {
   flex: 1 1 calc(25% - 1rem); /* 4 cards in a row */
-  min-width: 230px;
+  min-width: 220px;
   border-radius: 8px;
   color: white;
   box-shadow: 0 4px 6px rgba(69, 68, 68, 0.1);
@@ -139,17 +139,17 @@ main {
 }
 
 .dashboard-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Increased shadow on hover */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); 
 }
 
-/* Adjust cards for tablet devices */
+/* cards for tablet devices */
 @media (max-width: 1200px) {
   .dashboard-card {
     flex: 1 1 calc(33% - 1rem); /* 3 cards in a row */
   }
 }
 
-/* Adjust cards for smaller devices */
+/* cards for smaller devices */
 @media (max-width: 768px) {
   .dashboard-card {
     flex: 1 1 calc(50% - 1rem); /* 2 cards in a row */
