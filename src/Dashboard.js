@@ -13,6 +13,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import PeopleIcon from '@mui/icons-material/People';
 import DevicesIcon from '@mui/icons-material/Devices';
 import TaskIcon from '@mui/icons-material/Task';
+import Navbar from './Navbar'; 
 
 
 const DashboardCard = ({ title, description, icon, link }) => (
@@ -50,7 +51,8 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <header className='header'>
-        <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM'/>
+      
+         <img src='https://9.46.67.25/assets/branding/images/logo.svg' alt='IBM'/>
         <h1>Configuration Management</h1>
         <div className="settings-container">
           <button className="settings-button" onClick={toggleDropdown}>
@@ -68,7 +70,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-        <button onClick={handleLogout} className="logout-button">Logout</button>
+        <button onClick={handleLogout} className="logout-button">Logout</button> 
       </header>
       <main>
         <div className='hello-heading p0'>

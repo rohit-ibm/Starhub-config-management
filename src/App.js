@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate,Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import CreateUser from './CreateUser';
@@ -8,8 +8,9 @@ import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
 import UserProfileAdministrator from './UserProfileAdministrator';
 import CompareBackup from './CompareBackup';
-import './App.css';
-
+import ViewFile from './ViewFile';
+import CompareFiles from './CompareFiles';
+import './App.css';                                 
 
 
 function App() {
@@ -23,9 +24,10 @@ function App() {
           <Route path="/backup-management" element={<BackupManagement />} />
           <Route path="/list-device" element={<ListDevice />} />
           <Route path="/list-device/compare-backup/:hostname" element={<CompareBackup />} />
+          <Route path="/view-file/:hostname/:filename" element={<ViewFile />} />
+          <Route path="/compare-files/:hostname" element={<CompareFiles />} />
           <Route path="user-profile-administrator" element={<UserProfileAdministrator />} />
           <Route path="/create-user" element={<CreateUser />} />
-          {/* Default Route */}
           <Route path="/" element={<Navigate to="/dashboard/discovery-management" />} />
         </Routes>
       </div>
