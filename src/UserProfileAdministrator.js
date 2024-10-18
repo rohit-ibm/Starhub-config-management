@@ -34,6 +34,7 @@ const UserProfileAdministrator = () => {
   const [saveMessage, setSaveMessage] = useState(''); 
   const [userGroups, setUserGroups] = useState([]);
   const [originalUserGroups, setOriginalUserGroups] = useState([]);
+  const [userPermissions, setUserPermissions] = useState([]);
 
   
 
@@ -181,13 +182,18 @@ const UserProfileAdministrator = () => {
       const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`);
       const userGroupNames = response.data.map(group => group.group_name);
       setUserGroups(userGroupNames);
-      setOriginalUserGroups(userGroupNames); // Store the original groups
+      setOriginalUserGroups(userGroupNames);
+
+      // Extract all unique permissions (tasks) for the user
+      const userTasks = response.data.flatMap(group => group.tasks);
+      setUserPermissions([...new Set(userTasks)]);
     } catch (error) {
       console.error('Error fetching user groups:', error);
       setMessage('Error fetching user groups. Please try again.');
       setIsError(true);
     }
   };
+
   
 
   // Handle search functionality
@@ -204,9 +210,9 @@ const UserProfileAdministrator = () => {
       });
   };
 
-  const handleCheckboxChange = (userId) => {
+   const handleCheckboxChange = (userId) => {
     setSelectedUserIds(userId);
-    fetchUserGroups(userId); // Fetch groups for the selected user
+    fetchUserGroups(userId);
   };
 
 
@@ -375,28 +381,12 @@ const handleCreateUser = async (username, password, email) => {
   return (
     <div className="user-profile-administrator">
       <h2>User Profile Administrator</h2>
-
-      <div className="action-boxes">
-      <div className="action-box" onClick={handleCreateUserOpen}>
-        <h3>Create User</h3>
-      </div>
-      <div className="action-box" onClick={handleResetPassword}>
-        <h3>Reset Password</h3>
-      </div>
-      <div className="action-box" onClick={handleDeleteUsers}>
-        <h3>Delete User</h3>
-      </div>
-      <div className="action-box" onClick={handleSave}>
-        <h3>Save</h3>
-      </div>
-    </div>
-      {/* <div className="top-buttons">
+       <div className="top-buttons">
       <button onClick={handleCreateUserOpen} className="button">Create User</button>
-        {/* <Link to="/create-user" className="button">Create User</Link> 
         <button onClick={handleResetPassword} className="button">Reset Password</button>
         <button onClick={handleDeleteUsers} className="button">Delete User</button>
         <button onClick={handleSave} className="button">Save</button>
-      </div> */}
+      </div> 
       {/* {message && (
         <div className={`message ${isError ? 'error' : 'success'}`}>
           {message}
@@ -460,9 +450,20 @@ const handleCreateUser = async (username, password, email) => {
 
         {/* Permissions Section */}
         <div className="column alignment-left">
-          <h3>Permissions</h3>
-          <div className="permissions">
-            {permissions.length > 0 ? (
+        <h3>Permissions</h3>
+        <div className="permissions">
+          {selectedUserIds ? (
+            userPermissions.length > 0 ? (
+              userPermissions.map(permission => (
+                <div key={permission} className="permission-item">
+                  <label>{permission}</label>
+                </div>
+              ))
+            ) : (
+              <p>No permissions for the user.</p>
+            )
+          ) : (
+            permissions.length > 0 ? (
               permissions.map(permission => (
                 <div key={permission.task_id} className="permission-item">
                   <label htmlFor={`permission-${permission.task_id}`}>{permission.task_name}</label>
@@ -470,9 +471,10 @@ const handleCreateUser = async (username, password, email) => {
               ))
             ) : (
               <p>Loading Permissions...</p>
-            )}
-          </div>
+            )
+          )}
         </div>
+      </div>
       </div>
               {isResetPasswordPopupOpen && (
                 <div className="popup">

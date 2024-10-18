@@ -15,7 +15,7 @@ body {
   text-align: center;
 }
 
-/* .top-buttons {
+.top-buttons {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 20px;
@@ -35,7 +35,7 @@ body {
 
 .top-buttons .button:hover {
   background-color: #3f51b5;
-} */
+} 
 
 .columns {
   display: flex;
@@ -294,38 +294,4 @@ ul li input[type="checkbox"] {
 
 .user-profile-administrator {
   text-align: center;
-}
-
-.action-boxes {
-  display: flex;
-  justify-content: center; 
-  margin: 10px 0;
-  gap: 10px; 
-}
-
-.action-box {
-  width: 160px; 
-  height: 60px; 
-  background-color: #5c6bc0; 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  border-radius: 5px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s, background-color 0.3s;
-  color: white; 
-  margin-right: 2px; 
-  background-image: linear-gradient(131deg, rgba(255, 252, 252, 0.239), rgba(255, 255, 255, 0.039) 53%);
-}
-
-.action-box:hover {
-  transform: translateY(-5px);
-  background-color: #3f51b5; 
-}
-
-.action-box h3 {
-  font-size: 16px; 
-  font-weight: 500;
-  color: white;
 }
