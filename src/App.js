@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import Login from './Login';
 import Dashboard from './Dashboard';
 import CreateUser from './CreateUser';
@@ -46,6 +46,7 @@ function App() {
 
   function SessionManager() {
     const navigate = useNavigate();
+    const location = useLocation(); // Get the current location
     const [isSessionExpired, setIsSessionExpired] = useState(false);
 
     const handleSessionTimeout = () => {
@@ -53,7 +54,7 @@ function App() {
     };
 
     // Set the session timeout to 5 minutes (300000 milliseconds)
-    useSessionTimeout(60000, handleSessionTimeout);
+    useSessionTimeout(300000, handleSessionTimeout);
 
     const handleCloseModal = () => {
       sessionStorage.removeItem('isAuthenticated'); // Clear the session
@@ -63,7 +64,7 @@ function App() {
 
     return (
       <>
-        {isSessionExpired && (
+        {isSessionExpired && location.pathname !== '/login' && ( // Show modal only if not on login page
           <div className="modal">
             <div className="modal-content">
               <h3>Session Expired</h3>
