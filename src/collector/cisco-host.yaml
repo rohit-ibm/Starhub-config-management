@@ -1,0 +1,27 @@
+---
+all:
+  children:
+    network_devices:
+      hosts:
+        router1:
+          ansible_host: 10.52.0.191
+        router2:
+          ansible_host: 10.52.0.192
+        router3:
+          ansible_host: 10.52.0.193
+        
+      vars:
+        ansible_user: developer
+        ansible_ssh_pass: DevTeam123#
+        ansible_network_os: ios
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+
+    remote_server:
+      hosts:
+        backup_server:
+          ansible_host: 9.30.220.205
+      vars:
+        ansible_user: root
+        ansible_ssh_pass: Uttarpradesh123*
+

@@ -1,0 +1,15 @@
+---
+all:
+  children:
+    linux_hosts:
+      hosts:
+        server1:
+          ansible_host: 9.42.110.15
+          
+
+      vars:
+        ansible_user: root
+        ansible_ssh_pass: sdnban@123
+        ansible_connection: ssh
+        ansible_port: 15671  # Specify the custom SSH port here
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
