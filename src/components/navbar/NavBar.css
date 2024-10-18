@@ -1,0 +1,86 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4.5px 0px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 5px;
+}
+
+.header img {
+    width: 68px;
+    height: 25px;
+    padding-left: 24px;
+}
+
+.settings-container {
+    position: relative;
+    padding: 6px;
+}
+
+.settings-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    right: 110px;
+    color: rgb(76, 76, 76);
+}
+
+.settings-button:hover {
+    color: #5c6bc0;
+}
+
+.logos-container {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.logo-group {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2px;
+}
+
+.logo-group a {
+    color: white;
+}
+
+.dm-logo{
+    background-color: #6271c2;
+    padding: 6px ;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.bm-logo{
+    background-color: #1B9A7D;
+    padding: 6px ;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    border-radius: 50%;
+}
+.ld-logo{
+    background-color: #4491EB;
+    padding: 6px ;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.upa-logo{
+    background-color: #DF465E;
+    padding: 6px ;
+    display: flex;
+    justify-items: center;
+    align-items: center;
+    border-radius: 50%;
+}
