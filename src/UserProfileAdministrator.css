@@ -1,6 +1,7 @@
 /* src/components/UserProfileAdministrator.css */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
+
 body {
   font-family: 'Roboto', sans-serif;
 }
@@ -256,7 +257,7 @@ ul li input[type="checkbox"] {
 }
 
 .popup-buttons .btn-confirm {
-  background-color: #5c6bc0;
+  background-color: #5c6bc0; 
   color: white;
   transition: background-color 0.3s ease;
 }

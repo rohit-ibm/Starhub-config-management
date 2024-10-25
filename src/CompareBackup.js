@@ -15,7 +15,7 @@ const CompareBackup = () => {
   const [viewedFileName, setViewedFileName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const filesPerPage = 10; // Adjust the number of files per page as needed
+  const filesPerPage = 6; // Adjust the number of files per page as needed
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -186,6 +186,7 @@ const CompareBackup = () => {
         />
         <button onClick={handleSearch} className="search-button">Search</button>
       </div>
+      <div className="table-container">
       <table>
         <thead>
           <tr>
@@ -221,6 +222,7 @@ const CompareBackup = () => {
           ))}
         </tbody>
       </table>
+      </div>
       <Pagination
         currentPage={currentPage}
         handleNextPage={handleNextPage}

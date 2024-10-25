@@ -1,16 +1,23 @@
-.container {
-  text-align: center;
+
+* {
+  box-sizing: border-box;
 }
 
-.header, .subHeader {
+
+.container,
+.header,
+.subHeader {
   text-align: center;
+  font-size: 16px;
 }
+
 
 .device-group-controls {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
-.select, .label {
+.select,
+.label {
   display: inline-block;
   margin-right: 10px;
 }
@@ -18,7 +25,7 @@
 .button-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .button-container button,
@@ -26,22 +33,27 @@
   margin: 0 10px;
 }
 
-.immediate-button {
+.immediate-button,
+.schedule-button,
+.search-button,.delete-button {
   padding: 8px 12px;
-  background-color: #007BFF;
+  background-color: #5c6bc0 !important;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.immediate-button:hover {
-  background-color: #0056b3;
+.immediate-button:hover,
+.schedule-button:hover,
+.search-button:hover {
+  background-color:#3f51b5; 
 }
 
+
 .schedule-dropdown {
-  padding: 8px 20px;
-  background-color: #007BFF;
+  padding: 1px 5px;
+  background-color: #5c6bc0 ;
   color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -49,21 +61,9 @@
 }
 
 .schedule-dropdown:hover {
-  background-color: #3fa9de;
+  background-color: #3f51b5; 
 }
 
-.schedule-button {
-  padding: 8px 12px;
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.schedule-button:hover {
-  background-color: #0056b3;
-}
 
 .table {
   width: 100%;
@@ -71,29 +71,23 @@
   margin: 20px 0;
 }
 
-.tableHeader {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
+.tableHeader,
 .tableCell {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 7px;
 }
+
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
-.page-link {
-  margin: 0 10px;
-}
-
+.page-link,
 .page-info {
-  margin: 0 10px;
+  margin: 0 8px;
 }
 
 .current-page {
@@ -112,43 +106,35 @@
   border-radius: 4px;
 }
 
+
 .search-container {
   display: flex;
-  justify-content: space-between; /* Aligns children to extreme ends */
+  justify-content: space-between; 
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
+
 .select-all-button {
-  background-color: #007bff;
+  background-color:#5c6bc0 ;
   color: #fff;
   border: none;
   padding: 8px 12px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 12px;
+  margin-bottom: 0px;
 }
 
+
 .search-input {
-  padding: 8px;
+  padding: 7px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-right: 20px; /* Add some space between the input and the button */
+  margin-right: 20px; 
   width: 260px;
 }
 
-.search-button {
-  padding: 8px 12px;
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.search-button:hover {
-  background-color: #0056b3;
-}
 
 img.device-loader {
   width: 180px;
@@ -158,6 +144,7 @@ img.device-loader {
   left: 50%;
   transform: translateX(-50%);
 }
+
 
 .schedule-options-container.date-time {
   display: flex;
@@ -169,18 +156,32 @@ img.device-loader {
   margin-left: 15px;
 }
 
-.mr-15{
+.mr-15 {
   margin-right: 15px;
 }
+
 
 .select-all {
   text-align: left;
 }
 
-.success{
+
+.success {
   background-color: #5cb85c;
 }
 
-.failed{
+.failed {
   background-color: #fa113d;
+}
+
+
+body {
+  margin: 0;
+  overflow-x: hidden; 
+}
+
+.container {
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding: 0 15px; 
 }

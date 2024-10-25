@@ -8,7 +8,7 @@ const ListDevice = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deviceGroupDetails, setDeviceGroupDetails] = useState({ devices: [] });
   const [searchTerm, setSearchTerm] = useState('');
-  const devicesPerPage = 10; // Adjust the number of devices per page as needed
+  const devicesPerPage = 7; 
 
   const handleDownloadAll = (hostname) => {
     axios({

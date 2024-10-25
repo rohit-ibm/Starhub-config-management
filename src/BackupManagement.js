@@ -29,7 +29,7 @@ const App = () => {
   const [time, setTime] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
 
-  const devicesPerPage = 10; // Adjust the number of devices per page as needed
+  const devicesPerPage = 6; 
 
   const staticDeviceGroups = [
     {
@@ -563,4 +563,5 @@ const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages })
 };
 
 export default App;
+
 
