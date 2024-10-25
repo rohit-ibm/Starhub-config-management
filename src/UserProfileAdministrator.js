@@ -79,7 +79,7 @@ const UserProfileAdministrator = () => {
   }, []);
 
   const handleSave = async () => {
-    if (!selectedUserId) {
+    if (!selectedUserIds) {
       setSaveMessage('Please select a user before saving changes.');
       setIsError(true);
       setTimeout(() => setSaveMessage(''), 3000);
@@ -100,7 +100,7 @@ const UserProfileAdministrator = () => {
       const addPromises = groupsToAdd.map(async groupName => {
         const group = roles.find(role => role.group_name === groupName);
         if (group) {
-          const payload = { user_id: selectedUserId, group_id: group.group_id };
+          const payload = { user_id: selectedUserIds, group_id: group.group_id };
           return axios.post('http://9.46.112.167:8001/add_user_to_group', payload);
         }
       });
@@ -108,7 +108,7 @@ const UserProfileAdministrator = () => {
       const removePromises = groupsToRemove.map(async groupName => {
         const group = roles.find(role => role.group_name === groupName);
         if (group) {
-          const payload = { user_id: selectedUserId, group_id: group.group_id };
+          const payload = { user_id: selectedUserIds, group_id: group.group_id };
           return axios.delete('http://9.46.112.167:8001/remove_user_from_group', { data: payload });
         }
       });
@@ -116,14 +116,13 @@ const UserProfileAdministrator = () => {
       await Promise.all([...addPromises, ...removePromises]);
 
       // Refresh user groups data after the operations
-      await fetchUserGroups(selectedUserId);
+      await fetchUserGroups(selectedUserIds);
 
       setSaveMessage('User groups updated successfully!');
       setIsError(false);
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
       console.error('Error updating user groups:', error);
-      setSaveMessage('Error updating user groups. Please try again.');
       setIsError(true);
       setTimeout(() => setSaveMessage(''), 3000);
     }
@@ -264,6 +263,7 @@ const UserProfileAdministrator = () => {
     if (selectedUserIds.length === 0) {
       setMessage("Please select a user to reset the password.");
       setIsError(true);
+      setTimeout(() => setMessage(''), 2500);
       return;
     }
     setIsResetPasswordPopupOpen(true);

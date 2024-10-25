@@ -1,7 +1,7 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 80vh;
 }
 body {
   font-family: 'Roboto', sans-serif;
@@ -135,11 +135,13 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
+  position: relative;
 }
 
 .dashboard-card:hover {
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); 
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 
 /* cards for tablet devices */
@@ -170,20 +172,19 @@ main {
 }
 
 .dashboard-card:nth-child(2) {
-  background-color: #009679;
+  background: #009679;
   background-image: linear-gradient(131deg, rgba(255, 252, 252, 0.239), rgba(255, 255, 255, 0.039) 53%);
 }
 
 .dashboard-card:nth-child(3) {
-  background-color: #3b8cea;
+  background: #3b8cea;
   background-image: linear-gradient(131deg, rgba(255, 252, 252, 0.239), rgba(255, 255, 255, 0.039) 53%);
 }
 
 .dashboard-card:nth-child(4) {
-  background-color: #dd3e58;
+  background: #dd3e58;
   background-image: linear-gradient(131deg, rgba(255, 252, 252, 0.239), rgba(255, 255, 255, 0.039) 53%);
 }
-
 /* Card content and icon styles */
 .card-icon-container {
   display: flex;
