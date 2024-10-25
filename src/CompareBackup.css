@@ -1,6 +1,16 @@
+/* Ensure proper box-sizing */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 .container {
   width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 15px;
+  overflow: hidden; /* Ensure no content overflow */
 }
 
 .header, .subHeader {
@@ -10,21 +20,23 @@
 
 .search-container {
   display: flex;
-  justify-content: right;
+  justify-content: flex-end;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .search-input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-right: 20px; /* Add some space between the input and the button */
-  width: 400px;
+  margin-right: 20px;
+  width: 100%;
+  max-width: 400px;
 }
 
 .search-button {
   padding: 8px 12px;
-  background-color: #007BFF;
+  background-color: #5c6bc0; 
   color: white;
   border: none;
   border-radius: 4px;
@@ -32,22 +44,28 @@
 }
 
 .search-button:hover {
-  background-color: #0056b3;
+  background-color: #3f51b5; 
 }
 
 .compare-button {
   padding: 8px 12px;
-  background-color: #007BFF;
+  background-color: #3f51b5; 
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-top: 20px;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Enable horizontal scroll on small screens */
+  margin-bottom: 20px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
 }
 
 .tableHeader, .tableCell {
@@ -60,25 +78,26 @@
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .button-container button {
   padding: 8px 12px;
-  background-color: #007BFF;
+  background-color: #5c6bc0;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin: 0 10px; /* Adding space between buttons */
+  margin: 10px 10px;
 }
 
 .button-container button:hover {
-  background-color: #0056b3;
+  background-color: #3f51b5; 
 }
 
 .view-button {
   padding: 8px 12px;
-  background-color: #007BFF;
+  background-color: #5c6bc0;
   color: white;
   border: none;
   border-radius: 4px;
@@ -87,13 +106,15 @@
 }
 
 .view-button:hover {
-  background-color: #0056b3;
+  background-color: #3f51b5 ; 
 }
+
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .page-link {
@@ -110,4 +131,28 @@
 
 .viewed-file-content {
   text-align: left;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .search-container {
+    justify-content: center;
+  }
+
+  .search-input, .search-button {
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .pagination {
+    flex-direction: column;
+  }
+
+  .button-container {
+    flex-direction: column;
+  }
 }

@@ -7,12 +7,13 @@ import CompareBackup from './CompareBackup';
 import CreateUser from './CreateUser';
 import './Dashboard.css';
 import { Search, Schedule, Backup, Security } from '@mui/icons-material';
-import { Card, CardActionArea, CardContent, Typography, Container } from '@mui/material';
+import { Card, CardActionArea, CardContent, Typography, Container, Box, CircularProgress } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PeopleIcon from '@mui/icons-material/People';
 import DevicesIcon from '@mui/icons-material/Devices';
 import TaskIcon from '@mui/icons-material/Task';
 import imageURL from '../src/Assets/IBM_LOGO.svg';
+import { useAdmin } from './hooks/useAdmin';
 
 const DashboardCard = ({ title, description, icon, link }) => (
   <Card className="dashboard-card">
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+  const { isAdmin, isLoading, userName } = useAdmin();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -90,11 +92,19 @@ const Dashboard = () => {
     }
   }, [isSessionExpired]);
 
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
     <div className="dashboard">
       <main>
         <div className='hello-heading p0'>
-          <h3>Hello admin!</h3>
+        <h3>Hello {userName}!</h3>
         </div>
         <Container maxWidth="lg" disableGutters>
           <div className="dashboard-cards-container">
@@ -116,12 +126,14 @@ const Dashboard = () => {
               icon={<Backup fontSize="large" />}
               link={() => navigate("/list-device")}
             />
-            <DashboardCard
-              title="User Profile Administrator"
-              description="Create and manage authentications"
-              icon={<Security fontSize="large" />}
-              link={() => navigate("/user-profile-administrator")}
-            />
+             {isAdmin && (
+              <DashboardCard
+                title="User Profile Administrator"
+                description="Create and manage authentications"
+                icon={<Security fontSize="large" />}
+                link={() => navigate("/user-profile-administrator")}
+              />
+            )}
           </div>
           {/* Stats Container */}
           <div className="stats-container">
@@ -132,7 +144,7 @@ const Dashboard = () => {
             </div>
             <div className="stat-card">
               <DevicesIcon className="stat-icon" fontSize="large" />
-              <h4>Active Devices</h4>
+              <h4>Number of Devices</h4>
               <p>87</p>
             </div>
             <div className="stat-card">

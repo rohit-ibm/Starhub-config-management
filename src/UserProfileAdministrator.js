@@ -3,7 +3,15 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UserProfileAdministrator.css';
 import CreateUserForm from './CreateUser';
-import Navbar from './Navbar'; 
+
+const rolePermissions = {
+  'Administrator': ['DoAll'],
+  'DiscoveryManagement': ['viewOnly'],
+  'Schedule Management': ['backupOnly', 'viewOnly'], 
+  'Backup Management': ['compareBackup'], 
+};
+
+
 
 const UserProfileAdministrator = () => {
   const [users, setUsers] = useState([]);
@@ -35,11 +43,10 @@ const UserProfileAdministrator = () => {
   const [userGroups, setUserGroups] = useState([]);
   const [originalUserGroups, setOriginalUserGroups] = useState([]);
   const [userPermissions, setUserPermissions] = useState([]);
+  const [singleSelectedRole, setSingleSelectedRole] = useState('');
 
   
-
-
-
+ 
 
 
   // Fetch data on component mount
@@ -72,73 +79,55 @@ const UserProfileAdministrator = () => {
   }, []);
 
   const handleSave = async () => {
-    console.log("Entering save");
-
-    if (!selectedUserIds) {
-        setSaveMessage('Please select a user before saving changes.');
-        setIsError(true);
-        // Clear message after 3 seconds
-        setTimeout(() => setSaveMessage(''), 3000);
-        return;
+    if (!selectedUserId) {
+      setSaveMessage('Please select a user before saving changes.');
+      setIsError(true);
+      setTimeout(() => setSaveMessage(''), 3000);
+      return;
     }
 
     try {
-        const groupsToAdd = userGroups.filter(group => !originalUserGroups.includes(group));
-        const groupsToRemove = originalUserGroups.filter(group => !userGroups.includes(group));
+      const groupsToAdd = userGroups.filter(group => !originalUserGroups.includes(group));
+      const groupsToRemove = originalUserGroups.filter(group => !userGroups.includes(group));
 
-        console.log('Groups to Add:', groupsToAdd);
-        console.log('Groups to Remove:', groupsToRemove);
-
-        if (groupsToAdd.length === 0 && groupsToRemove.length === 0) {
-            console.log('No changes detected, skipping save.');
-            setSaveMessage('No changes made.');
-            setIsError(false);
-            // Clear message after 3 seconds
-            setTimeout(() => setSaveMessage(''), 3000);
-            return;
-        }
-
-        const addPromises = groupsToAdd.map(async groupName => {
-            const group = roles.find(role => role.group_name === groupName);
-            if (group) {
-                const payload = { user_id: selectedUserIds, group_id: group.group_id };
-                console.log('Payload to add:', payload);
-                return axios.post('http://9.46.112.167:8001/add_user_to_group', payload);
-            }
-        });
-
-        const removePromises = groupsToRemove.map(async groupName => {
-            const group = roles.find(role => role.group_name === groupName);
-            if (group) {
-                const payload = { user_id: selectedUserIds, group_id: group.group_id };
-                console.log('Payload for removing group:', payload);
-                return axios.delete('http://9.46.112.167:8001/remove_user_from_group', { data: payload });
-            }
-        });
-
-        await Promise.all([...addPromises, ...removePromises]);
-
-        // Refresh user groups data after the operations
-        await fetchUserGroups(selectedUserIds);
-
-        setSaveMessage('User groups updated successfully!');
+      if (groupsToAdd.length === 0 && groupsToRemove.length === 0) {
+        setSaveMessage('No changes made.');
         setIsError(false);
-        // Clear message after 3 seconds
         setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error) {
-        console.error('Error updating user groups:', error);
-        if (error.response) {
-            console.log('Error response:', error.response.data);
-            setSaveMessage(`Error updating user groups: ${error.response.data.detail || 'Please try again.'}`);
-        } else {
-            setSaveMessage('Error updating user groups. Please try again.');
-        }
-        setIsError(true);
-        // Clear message after 3 seconds
-        setTimeout(() => setSaveMessage(''), 3000);
-    }
-};
+        return;
+      }
 
+      const addPromises = groupsToAdd.map(async groupName => {
+        const group = roles.find(role => role.group_name === groupName);
+        if (group) {
+          const payload = { user_id: selectedUserId, group_id: group.group_id };
+          return axios.post('http://9.46.112.167:8001/add_user_to_group', payload);
+        }
+      });
+
+      const removePromises = groupsToRemove.map(async groupName => {
+        const group = roles.find(role => role.group_name === groupName);
+        if (group) {
+          const payload = { user_id: selectedUserId, group_id: group.group_id };
+          return axios.delete('http://9.46.112.167:8001/remove_user_from_group', { data: payload });
+        }
+      });
+
+      await Promise.all([...addPromises, ...removePromises]);
+
+      // Refresh user groups data after the operations
+      await fetchUserGroups(selectedUserId);
+
+      setSaveMessage('User groups updated successfully!');
+      setIsError(false);
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      console.error('Error updating user groups:', error);
+      setSaveMessage('Error updating user groups. Please try again.');
+      setIsError(true);
+      setTimeout(() => setSaveMessage(''), 3000);
+    }
+  };
   
 
 
@@ -180,19 +169,25 @@ const UserProfileAdministrator = () => {
   const fetchUserGroups = async (userId) => {
     try {
       const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`);
-      const userGroupNames = response.data.map(group => group.group_name);
-      setUserGroups(userGroupNames);
-      setOriginalUserGroups(userGroupNames);
-
-      // Extract all unique permissions (tasks) for the user
-      const userTasks = response.data.flatMap(group => group.tasks);
-      setUserPermissions([...new Set(userTasks)]);
+      
+      if (response.status === 200 && response.data) {
+        const userGroupNames = response.data.map(group => group.group_name);
+        setUserGroups(userGroupNames);
+        setOriginalUserGroups(userGroupNames);
+  
+        // Extract all unique permissions (tasks) for the user
+        const userTasks = response.data.flatMap(group => group.tasks);
+        setUserPermissions([...new Set(userTasks)]);
+      } else {
+        throw new Error('Unexpected response format or empty response.');
+      }
     } catch (error) {
       console.error('Error fetching user groups:', error);
       setMessage('Error fetching user groups. Please try again.');
       setIsError(true);
     }
   };
+  
 
   
 
@@ -210,24 +205,59 @@ const UserProfileAdministrator = () => {
       });
   };
 
-   const handleCheckboxChange = (userId) => {
-    setSelectedUserIds(userId);
-    fetchUserGroups(userId);
+  const handleCheckboxChange = (userId) => {
+    if (selectedUserIds === userId) {
+      // If the user is already selected, unselect them
+      setSelectedUserIds(null);
+      setUserGroups([]);
+      setOriginalUserGroups([]);
+      setUserPermissions([]);
+      setSingleSelectedRole(''); // Clear single role selection
+    } else {
+      // If a different user is selected, select them and fetch their data
+      setSelectedUserIds(userId);
+      setSingleSelectedRole(''); // Clear single role selection
+      fetchUserGroups(userId);
+    }
   };
 
 
-  const handleUserSelection = (userId) => {
-    setSelectedUserId(userId);
-    fetchUserGroups(userId);
-  };
+
+  // const handleUserSelection = (userId) => {
+  //   setSelectedUserId(userId);
+  //   fetchUserGroups(userId);
+  // };
 
   const handleRoleChange = (groupName) => {
-    setUserGroups(prevGroups => 
-      prevGroups.includes(groupName)
-        ? prevGroups.filter(name => name !== groupName)
-        : [...prevGroups, groupName]
-    );
+    if (!selectedUserIds) {
+      // When no user is selected, allow only one role selection
+      if (singleSelectedRole === groupName) {
+        // If clicking the same role, unselect it
+        setSingleSelectedRole('');
+        setUserGroups([]);
+        setUserPermissions([]);
+      } else {
+        // Select new role
+        setSingleSelectedRole(groupName);
+        setUserGroups([groupName]);
+        setUserPermissions(rolePermissions[groupName] || []);
+      }
+    } else {
+      // When user is selected, keep existing multiple selection functionality
+      const updatedGroups = userGroups.includes(groupName)
+        ? userGroups.filter(name => name !== groupName)
+        : [...userGroups, groupName];
+      
+      setUserGroups(updatedGroups);
+      
+      // Update permissions based on all selected roles
+      const allPermissions = updatedGroups.flatMap(role => rolePermissions[role] || []);
+      setUserPermissions([...new Set(allPermissions)]);
+    }
   };
+  
+  
+
 
   // Handle Reset Password - Opens Popup
   const handleResetPassword = () => {
@@ -430,51 +460,62 @@ const handleCreateUser = async (username, password, email) => {
 
         {/* Roles Section */}
         <div className="column alignment-left">
-          <h3>Roles</h3>
-          <div className="roles">
-            {roles.length > 0 ? (
-              roles.map(role => (
-                <div key={role.group_id} className="role-item">
-                  <input type="checkbox" id={`role-${role.group_id}`}
-                   checked={userGroups.includes(role.group_name)} 
+        <h3>Roles</h3>
+        <div className="roles">
+          {roles.length > 0 ? (
+            roles.map(role => (
+              <div key={role.group_id} className="role-item">
+                <input
+                  type="checkbox"
+                  id={`role-${role.group_id}`}
+                  checked={selectedUserIds 
+                    ? userGroups.includes(role.group_name)
+                    : singleSelectedRole === role.group_name}
                   onChange={() => handleRoleChange(role.group_name)}
-                  />
-                  <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
-                </div>
-              ))
-            ) : (
-              <p>Loading Roles...</p>
-            )}
-          </div>
+                />
+                <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
+              </div>
+            ))
+          ) : (
+            <p>Loading Roles...</p>
+          )}            
         </div>
+      </div>
 
         {/* Permissions Section */}
         <div className="column alignment-left">
-        <h3>Permissions</h3>
-        <div className="permissions">
-          {selectedUserIds ? (
-            userPermissions.length > 0 ? (
-              userPermissions.map(permission => (
-                <div key={permission} className="permission-item">
-                  <label>{permission}</label>
-                </div>
-              ))
-            ) : (
-              <p>No permissions for the user.</p>
-            )
-          ) : (
-            permissions.length > 0 ? (
-              permissions.map(permission => (
-                <div key={permission.task_id} className="permission-item">
-                  <label htmlFor={`permission-${permission.task_id}`}>{permission.task_name}</label>
-                </div>
-              ))
-            ) : (
-              <p>Loading Permissions...</p>
-            )
-          )}
-        </div>
-      </div>
+  <h3>Permissions</h3>
+  <div className="permissions">
+    {selectedUserIds ? (
+      // Display permissions based on selected user and their groups
+      userPermissions.length > 0 ? (
+        userPermissions.map(permission => (
+          <div key={permission} className="permission-item">
+            <label>{permission}</label>
+          </div>
+        ))
+      ) : (
+        <p>No permissions.</p>
+      )
+    ) : (
+      // If no user is selected, display permissions based on selected roles
+      userGroups.length > 0 ? (
+        userPermissions.length > 0 ? (
+          userPermissions.map(permission => (
+            <div key={permission} className="permission-item">
+              <label>{permission}</label>
+            </div>
+          ))
+        ) : (
+          <p>No permissions for the selected role(s).</p>
+        )
+      ) : (
+        <p>Please select a user or a role to view permissions.</p>
+      )
+    )}
+  </div>
+</div>
+
       </div>
               {isResetPasswordPopupOpen && (
                 <div className="popup">
