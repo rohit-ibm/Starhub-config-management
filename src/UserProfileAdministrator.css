@@ -7,19 +7,20 @@ body {
 }
 
 .user-profile-administrator {
-  max-width: 1200px;
+  max-width: 1200px; 
   margin: 0 auto;
   padding: 20px;
 }
 
 .user-profile-administrator h2 {
   text-align: center;
+  margin-bottom: 20px; 
 }
 
 .top-buttons {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .top-buttons .button {
@@ -51,6 +52,7 @@ body {
 .column h3,
 .column.alignment-left {
   text-align: left;
+  margin-bottom: 20px; 
 }
 
 .search-bar {
@@ -61,7 +63,7 @@ body {
 }
 
 .search-bar input {
-  padding: 10px;
+  padding: 8px;
   width: 70%;
   margin-right: 10px;
 }
@@ -82,6 +84,7 @@ body {
 ul {
   list-style-type: none;
   padding: 0;
+  margin-bottom: 20px; 
 }
 
 ul li {
@@ -121,6 +124,7 @@ ul li input[type="checkbox"] {
 .roles {
   display: flex;
   flex-direction: column;
+  margin-bottom: 20px; 
 }
 
 .role-item {
@@ -248,12 +252,12 @@ ul li input[type="checkbox"] {
 
 .popup-buttons .btn-confirm,
 .popup-buttons .btn-cancel {
-  padding: 10px 20px;
+  padding: 10px 20px !important;
   font-size: 14px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  width: 45%; 
+  width: 48%; 
 }
 
 .popup-buttons .btn-confirm {
