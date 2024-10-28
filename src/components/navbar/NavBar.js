@@ -1,15 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SettingsIcon from '@mui/icons-material/Settings';
-import imageUrl from '../../Assets/IBM_LOGO.svg';
 import './NavBar.css';
 import { useAdmin } from '../../hooks/useAdmin';
+import PersonIcon from '@mui/icons-material/Person';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import imageUrl from '../../Assets/IBM_LOGO.svg';
+import { Search, Schedule, Backup, Security } from '@mui/icons-material';
 
 const NavBar = () => {
     const navigate = useNavigate();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
     const { isAdmin, isLoading, userName } = useAdmin();
+    const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
+    const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+    const [username, setUsername] = useState('');
+
+    useEffect(() => {
+        // Get the username from local storage
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+            setUsername(storedUsername); // Set the username from local storage
+        } else {
+            setUsername(''); // Default to empty if not found
+        }
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -21,8 +36,12 @@ const NavBar = () => {
         navigate('/login');
     };
 
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
+    const toggleSettingsDropdown = () => {
+        setIsSettingsDropdownOpen(!isSettingsDropdownOpen);
+    }
+
+    const toggleProfileDropdown = () => {
+        setIsProfileDropdownOpen(!isProfileDropdownOpen);
     };
 
     useEffect(() => {
@@ -64,24 +83,41 @@ const NavBar = () => {
                 )}
                 {/* <Link to="/user-profile-administrator" className='nav-item'>User Profile Administrator</Link> */}
             </nav>
-            <div className="settings-container" ref={dropdownRef}>
-                <button className="settings-button" onClick={toggleDropdown}>
-                    <SettingsIcon />
-                </button>
-                {isDropdownOpen && (
-                    <div className="dropdown">
-                        <ul>
-                            <li>Discovery Management</li>
-                            <li>Schedule Management</li>
-                            <li>Backup Management</li>
-                            <li>User Profile Administrator</li>
-                        </ul>
-                    </div>
-                )}
+            <div className="settings-profile-container">
+                <div>
+                    <button className="settings-button" onClick={toggleSettingsDropdown}>
+                        <SettingsIcon size={34} />
+                    </button>
+
+                    {isSettingsDropdownOpen && (
+                        <div className="dropdown settings-dropdown">
+                            <ul>
+                                <li>Discovery Management</li>
+                                <li>Schedule Management</li>
+                                <li>Backup Management</li>
+                                <li>User Profile Administrator</li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <button className="profile-button" onClick={toggleProfileDropdown}>
+                        <PersonIcon size={34} />
+                        {username && <span className="username">{username}</span>} {/* Display the username if it exists */}
+                        <ArrowDropDownIcon size={34} /> {/* Down arrow icon */}
+                    </button>
+
+                    {isProfileDropdownOpen && (
+                        <div className="dropdown profile-dropdown">
+                            <ul>
+                                <li onClick={handleLogout}>Logout</li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
-            <button onClick={handleLogout} className="logout-button">Logout</button>
         </div>
     );
 }
-
+            
 export default NavBar;
