@@ -18,39 +18,71 @@ const Login = () => {
   const handleClose = () => setOpen(false);
   const handleOpen = () => setOpen(true);
 
-  // Helper function to safely decode and examine token
-  const decodeToken = (token) => {
-    console.log('Raw token:', token); // Debug log
 
+ // Helper function to extract user ID from various token formats
+ const extractUserId = (token) => {
+  console.log('Extracting user ID from token:', token);
+
+  if (typeof token === 'object' && token !== null) {
+    // Handle JSON object response
+    return token.user_id || token.userId || token.id;
+  }
+
+  try {
+    // Try parsing as JSON string
+    const jsonToken = JSON.parse(token);
+    return jsonToken.user_id || jsonToken.userId || jsonToken.id;
+  } catch (e) {
+    // If JSON parsing fails, try JWT decoding
     try {
-      // Try parsing as JSON first
-      const jsonToken = JSON.parse(token);
-      console.log('Token parsed as JSON:', jsonToken);
-      return { 
-        userId: jsonToken.user_id || jsonToken.id || jsonToken.userId,
-        type: 'json'
-      };
-    } catch (e) {
-      // If JSON parsing fails, try JWT decoding
-      try {
-        const parts = token.split('.');
-        if (parts.length >= 2) {
-          const payload = JSON.parse(atob(parts[1]));
-          console.log('Token decoded as JWT:', payload);
-          return { 
-            userId: payload.user_id || payload.sub || payload.id,
-            type: 'jwt'
-          };
-        }
-      } catch (jwtError) {
-        console.log('JWT decoding failed:', jwtError);
+      const parts = token.split('.');
+      if (parts.length >= 2) {
+        const payload = JSON.parse(atob(parts[1]));
+        return payload.user_id || payload.sub || payload.id;
       }
+    } catch (jwtError) {
+      console.log('JWT decoding failed:', jwtError);
     }
+  }
 
-    // If all parsing fails, return the token as is
-    console.log('Using token as raw value');
-    return { userId: token, type: 'raw' };
-  };
+  // If all parsing fails, return null
+  return null;
+};
+
+
+  // // Helper function to safely decode and examine token
+  // const decodeToken = (token) => {
+  //   console.log('Raw token:', token); // Debug log
+
+  //   try {
+  //     // Try parsing as JSON first
+  //     const jsonToken = JSON.parse(token);
+  //     console.log('Token parsed as JSON:', jsonToken);
+  //     return { 
+  //       userId: jsonToken.user_id || jsonToken.id || jsonToken.userId,
+  //       type: 'json'
+  //     };
+  //   } catch (e) {
+  //     // If JSON parsing fails, try JWT decoding
+  //     try {
+  //       const parts = token.split('.');
+  //       if (parts.length >= 2) {
+  //         const payload = JSON.parse(atob(parts[1]));
+  //         console.log('Token decoded as JWT:', payload);
+  //         return { 
+  //           userId: payload.user_id || payload.sub || payload.id,
+  //           type: 'jwt'
+  //         };
+  //       }
+  //     } catch (jwtError) {
+  //       console.log('JWT decoding failed:', jwtError);
+  //     }
+  //   }
+
+  //   // If all parsing fails, return the token as is
+  //   console.log('Using token as raw value');
+  //   return { userId: token, type: 'raw' };
+  // };
 
   const fetchUserGroups = async (userId) => {
     try {
@@ -67,32 +99,26 @@ const Login = () => {
       return [];
     }
   };
-
   const setupUserSession = async (loginResponse, isTokenLogin = false) => {
     if (loginResponse.status === 200 && loginResponse.data) {
       const token = loginResponse.data;
       console.log('Login successful, received token:', token);
       
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', JSON.stringify(token));
       sessionStorage.setItem('userName', username);
 
       let userId;
       if (!isTokenLogin) {
         // For local login
-        console.log('Processing local login token');
-        const decodedToken = decodeToken(token);
-        console.log('Decoded token result:', decodedToken);
-        
-        if (!decodedToken.userId) {
+        userId = extractUserId(token);
+        if (!userId) {
           console.error('Could not extract userId from token');
           setError('Error processing login information');
           setOpen(false);
           return;
         }
-        userId = decodedToken.userId;
       } else {
         // For admin token login
-        console.log('Processing admin token login');
         userId = '24';
       }
 
@@ -182,7 +208,7 @@ const Login = () => {
         <div>
           Login to your account
         </div>
-        <form onSubmit={username === "admin" ? handleTokenLogin : handleLocalLogin}>
+        <form onSubmit={username == "admin" ? handleTokenLogin : handleLocalLogin}>
           <div className='username-container'>
             <div>Username *</div>
             <input
