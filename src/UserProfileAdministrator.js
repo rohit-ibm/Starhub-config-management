@@ -6,9 +6,9 @@ import CreateUserForm from './CreateUser';
 
 const rolePermissions = {
   'Administrator': ['DoAll'],
-  'DiscoveryManagement': ['viewOnly'],
-  'Schedule Management': ['backupOnly', 'viewOnly'], 
-  'Backup Management': ['compareBackup'], 
+  'Discovery Management': ['viewOnly'],
+  'Schedule Management': ['backupOnly', 'viewOnly'],
+  'Backup Management': ['compareBackup'],
 };
 
 
@@ -28,7 +28,7 @@ const UserProfileAdministrator = () => {
   const [selectedGroupId, setSelectedGroupId] = useState(0);
 
   const [isCreateUserPopupOpen, setIsCreateUserPopupOpen] = useState(false);
-  const [createUserMessage, setCreateUSerMessage] = useState(''); 
+  const [createUserMessage, setCreateUSerMessage] = useState('');
 
   // State for popup and new password
   const [isResetPasswordPopupOpen, setIsResetPasswordPopupOpen] = useState(false);
@@ -39,14 +39,14 @@ const UserProfileAdministrator = () => {
   const [deleteMessage, setDeleteMessage] = useState('');
 
   //state for save
-  const [saveMessage, setSaveMessage] = useState(''); 
+  const [saveMessage, setSaveMessage] = useState('');
   const [userGroups, setUserGroups] = useState([]);
   const [originalUserGroups, setOriginalUserGroups] = useState([]);
   const [userPermissions, setUserPermissions] = useState([]);
   const [singleSelectedRole, setSingleSelectedRole] = useState('');
 
-  
- 
+
+
 
 
   // Fetch data on component mount
@@ -127,7 +127,7 @@ const UserProfileAdministrator = () => {
       setTimeout(() => setSaveMessage(''), 3000);
     }
   };
-  
+
 
 
   // Fetch users from API
@@ -168,12 +168,12 @@ const UserProfileAdministrator = () => {
   const fetchUserGroups = async (userId) => {
     try {
       const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`);
-      
+
       if (response.status === 200 && response.data) {
         const userGroupNames = response.data.map(group => group.group_name);
         setUserGroups(userGroupNames);
         setOriginalUserGroups(userGroupNames);
-  
+
         // Extract all unique permissions (tasks) for the user
         const userTasks = response.data.flatMap(group => group.tasks);
         setUserPermissions([...new Set(userTasks)]);
@@ -186,9 +186,9 @@ const UserProfileAdministrator = () => {
       setIsError(true);
     }
   };
-  
 
-  
+
+
 
   // Handle search functionality
   const handleSearch = () => {
@@ -246,16 +246,16 @@ const UserProfileAdministrator = () => {
       const updatedGroups = userGroups.includes(groupName)
         ? userGroups.filter(name => name !== groupName)
         : [...userGroups, groupName];
-      
+
       setUserGroups(updatedGroups);
-      
+
       // Update permissions based on all selected roles
       const allPermissions = updatedGroups.flatMap(role => rolePermissions[role] || []);
       setUserPermissions([...new Set(allPermissions)]);
     }
   };
-  
-  
+
+
 
 
   // Handle Reset Password - Opens Popup
@@ -286,7 +286,7 @@ const UserProfileAdministrator = () => {
   const handleCloseResetPasswordPopup = () => {
     setIsResetPasswordPopupOpen(false);
     setNewPassword(''); // Clear the password input
-    setMessage(''); 
+    setMessage('');
   };
 
 
@@ -315,8 +315,8 @@ const UserProfileAdministrator = () => {
         setUserId('');
         setNewPassword('');
         setTimeout(() => {
-          setIsResetPasswordPopupOpen(false); 
-      }, 3000);
+          setIsResetPasswordPopupOpen(false);
+        }, 3000);
       } else {
         const errorData = await response.json(); // Handle error response
         setMessage(`Error: ${errorData.message}`); // Display specific error message from the server
@@ -345,12 +345,12 @@ const UserProfileAdministrator = () => {
         setDeleteMessage('User deleted successfully.');
         setIsError(false);
         fetchUsers(); // Refresh the user list
-      setTimeout(() => {
-        setIsDeleteConfirmationOpen(false);
-        setDeleteMessage(''); 
-      }, 2000); 
-    })
-      
+        setTimeout(() => {
+          setIsDeleteConfirmationOpen(false);
+          setDeleteMessage('');
+        }, 2000);
+      })
+
       .catch(error => {
         setDeleteMessage('Error deleting user.');
         setIsError(true);
@@ -373,34 +373,34 @@ const UserProfileAdministrator = () => {
   };
 
   // Function to open create user popup
-const handleCreateUserOpen = () => {
-  setIsCreateUserPopupOpen(true);
-};
+  const handleCreateUserOpen = () => {
+    setIsCreateUserPopupOpen(true);
+  };
 
-// Function to close create user popup
-const handleCreateUserClose = () => {
-  setIsCreateUserPopupOpen(false);
-};
+  // Function to close create user popup
+  const handleCreateUserClose = () => {
+    setIsCreateUserPopupOpen(false);
+  };
 
-// Function to handle user creation
-const handleCreateUser = async (username, password, email) => {
-  try {
+  // Function to handle user creation
+  const handleCreateUser = async (username, password, email) => {
+    try {
       const response = await axios.post('http://9.46.112.167:8001/create_user', {
-          username,
-          password,
-          email,
+        username,
+        password,
+        email,
       });
       setCreateUSerMessage('User created successfully!');
       setIsError(false);
       fetchUsers();
       setTimeout(() => {
-          setIsCreateUserPopupOpen(false); // Close popup after successful creation
+        setIsCreateUserPopupOpen(false); // Close popup after successful creation
       }, 3000);
-  } catch (error) {
-    setCreateUSerMessage('There was an error creating the user.');
+    } catch (error) {
+      setCreateUSerMessage('There was an error creating the user.');
       setIsError(true);
-  }
-};
+    }
+  };
 
 
   // Pagination logic
@@ -411,12 +411,12 @@ const handleCreateUser = async (username, password, email) => {
   return (
     <div className="user-profile-administrator">
       <h2>User Profile Administrator</h2>
-       <div className="top-buttons">
-      <button onClick={handleCreateUserOpen} className="button">Create User</button>
+      <div className="top-buttons">
+        <button onClick={handleCreateUserOpen} className="button">Create User</button>
         <button onClick={handleResetPassword} className="button">Reset Password</button>
         <button onClick={handleDeleteUsers} className="button">Delete User</button>
         <button onClick={handleSave} className="button">Save</button>
-      </div> 
+      </div>
       {/* {message && (
         <div className={`message ${isError ? 'error' : 'success'}`}>
           {message}
@@ -436,15 +436,15 @@ const handleCreateUser = async (username, password, email) => {
             <button onClick={handleSearch}>Search</button>
           </div>
           <ul>
-            {displayedUsers.map(user => {               
-                return (
-                  <li key={user.user_id}>
-                        <input type="checkbox"   id={`user-${user.user_id}`}  checked={selectedUserIds === user.user_id} onChange={() => handleCheckboxChange(user.user_id)}  />
-                        <label htmlFor={`user-${user.user_id}`}>{user.username}</label>
-                    </li>
-                );
+            {displayedUsers.map(user => {
+              return (
+                <li key={user.user_id}>
+                  <input type="checkbox" id={`user-${user.user_id}`} checked={selectedUserIds === user.user_id} onChange={() => handleCheckboxChange(user.user_id)} />
+                  <label htmlFor={`user-${user.user_id}`}>{user.username}</label>
+                </li>
+              );
             })}
-        </ul>
+          </ul>
           <div className="pagination">
             {Array.from({ length: totalPages }, (_, index) => (
               <button
@@ -460,116 +460,116 @@ const handleCreateUser = async (username, password, email) => {
 
         {/* Roles Section */}
         <div className="column alignment-left">
-        <h3>Roles</h3>
-        <div className="roles">
-          {roles.length > 0 ? (
-            roles.map(role => (
-              <div key={role.group_id} className="role-item">
-                <input
-                  type="checkbox"
-                  id={`role-${role.group_id}`}
-                  checked={selectedUserIds 
-                    ? userGroups.includes(role.group_name)
-                    : singleSelectedRole === role.group_name}
-                  onChange={() => handleRoleChange(role.group_name)}
-                />
-                <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
-              </div>
-            ))
-          ) : (
-            <p>Loading Roles...</p>
-          )}            
+          <h3>Roles</h3>
+          <div className="roles">
+            {roles.length > 0 ? (
+              roles.map(role => (
+                <div key={role.group_id} className="role-item">
+                  <input
+                    type="checkbox"
+                    id={`role-${role.group_id}`}
+                    checked={selectedUserIds
+                      ? userGroups.includes(role.group_name)
+                      : singleSelectedRole === role.group_name}
+                    onChange={() => handleRoleChange(role.group_name)}
+                  />
+                  <label htmlFor={`role-${role.group_id}`}>{role.group_name}</label>
+                </div>
+              ))
+            ) : (
+              <p>Loading Roles...</p>
+            )}
+          </div>
         </div>
-      </div>
 
         {/* Permissions Section */}
         <div className="column alignment-left">
-  <h3>Permissions</h3>
-  <div className="permissions">
-    {selectedUserIds ? (
-      // Display permissions based on selected user and their groups
-      userPermissions.length > 0 ? (
-        userPermissions.map(permission => (
-          <div key={permission} className="permission-item">
-            <label>{permission}</label>
+          <h3>Permissions</h3>
+          <div className="permissions">
+            {selectedUserIds ? (
+              // Display permissions based on selected user and their groups
+              userPermissions.length > 0 ? (
+                userPermissions.map(permission => (
+                  <div key={permission} className="permission-item">
+                    <label>{permission}</label>
+                  </div>
+                ))
+              ) : (
+                <p>No permissions.</p>
+              )
+            ) : (
+              // If no user is selected, display permissions based on selected roles
+              userGroups.length > 0 ? (
+                userPermissions.length > 0 ? (
+                  userPermissions.map(permission => (
+                    <div key={permission} className="permission-item">
+                      <label>{permission}</label>
+                    </div>
+                  ))
+                ) : (
+                  <p>No permissions for the selected role(s).</p>
+                )
+              ) : (
+                <p>Please select a user or a role to view permissions.</p>
+              )
+            )}
           </div>
-        ))
-      ) : (
-        <p>No permissions.</p>
-      )
-    ) : (
-      // If no user is selected, display permissions based on selected roles
-      userGroups.length > 0 ? (
-        userPermissions.length > 0 ? (
-          userPermissions.map(permission => (
-            <div key={permission} className="permission-item">
-              <label>{permission}</label>
-            </div>
-          ))
-        ) : (
-          <p>No permissions for the selected role(s).</p>
-        )
-      ) : (
-        <p>Please select a user or a role to view permissions.</p>
-      )
-    )}
-  </div>
-</div>
+        </div>
 
       </div>
-              {isResetPasswordPopupOpen && (
-                <div className="popup">
-                  <div className="popup-content">
-                    <h2>Reset Password</h2>
-                    <form onSubmit={handleSubmit}>
-                      <div className="input-group">
-                        <label htmlFor="newPassword">New Password:</label>
-                        <input
-                          id="newPassword"
-                          type="password"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="popup-buttons">
-                        <button type="submit" className="btn-confirm">Reset Password</button>
-                        <button type="button" className="btn-cancel" onClick={handleCloseResetPasswordPopup}>Cancel</button>
-                      </div>
-                    </form>
+      {isResetPasswordPopupOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Reset Password</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label htmlFor="newPassword">New Password:</label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="popup-buttons">
+                <button type="submit" className="btn-confirm">Reset Password</button>
+                <button type="button" className="btn-cancel" onClick={handleCloseResetPasswordPopup}>Cancel</button>
+              </div>
+            </form>
 
-                    {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</p>}
-                  </div>
-                </div>
-              )}
+            {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</p>}
+          </div>
+        </div>
+      )}
 
 
-            {isCreateUserPopupOpen && (
-                <div className="popup">
-                    <div className="popup-content">
-                        <h2>Create User</h2>
-                        <CreateUserForm onCreateUser={handleCreateUser} onClose={handleCreateUserClose} />
-                        {createUserMessage && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{createUserMessage}</p>}
-                    </div>
-                </div>
-            )}
+      {isCreateUserPopupOpen && (
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Create User</h2>
+            <CreateUserForm onCreateUser={handleCreateUser} onClose={handleCreateUserClose} />
+            {createUserMessage && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{createUserMessage}</p>}
+          </div>
+        </div>
+      )}
 
 
       {/* Delete Confirmation Popup */}
       {isDeleteConfirmationOpen && (
-  <div className="popup">
-    <div className="popup-content">
-      <h2>Confirm Deletion</h2>
-      <p>Are you sure you want to delete the selected user(s)?</p>
-      <div className="popup-buttons">
-        <button onClick={handleConfirmDelete} className="btn-confirm">Yes</button>
-        <button onClick={handleCloseDeletePopup} className="btn-cancel">No</button>
-      </div>
-      {deleteMessage && <p className={`message ${deleteMessage.includes('Error') ? 'error' : 'success'}`}>{deleteMessage}</p>} 
-    </div>
-  </div>
-)}
- {saveMessage && <p className={`message ${saveMessage.includes('Error') ? 'error' : 'success'}`}>{saveMessage}</p>}
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete the selected user(s)?</p>
+            <div className="popup-buttons">
+              <button onClick={handleConfirmDelete} className="btn-confirm">Yes</button>
+              <button onClick={handleCloseDeletePopup} className="btn-cancel">No</button>
+            </div>
+            {deleteMessage && <p className={`message ${deleteMessage.includes('Error') ? 'error' : 'success'}`}>{deleteMessage}</p>}
+          </div>
+        </div>
+      )}
+      {saveMessage && <p className={`message ${saveMessage.includes('Error') ? 'error' : 'success'}`}>{saveMessage}</p>}
     </div>
   );
 };
