@@ -6,12 +6,10 @@ import CreateUserForm from './CreateUser';
 
 const rolePermissions = {
   'Administrator': ['DoAll'],
-  'Discovery Management': ['viewOnly'],
+  'DiscoveryManagement': ['viewOnly'],
   'Schedule Management': ['backupOnly', 'viewOnly'],
   'Backup Management': ['compareBackup'],
 };
-
-
 
 const UserProfileAdministrator = () => {
   const [users, setUsers] = useState([]);
