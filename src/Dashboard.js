@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import './Dashboard.css';
 import { Search, Schedule, Backup, Security } from '@mui/icons-material';
 import { Card, CardActionArea, CardContent, Typography, Container, Box, CircularProgress } from '@mui/material';
@@ -30,7 +30,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
-  const { isAdmin, isLoading, userName } = useAdmin();
+  const { isAdmin, isLoading, userName, hasRoleAccess, userGroups } = useAdmin();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -49,13 +49,12 @@ const Dashboard = () => {
     let timeoutId;
 
     const resetTimeout = () => {
-      clearTimeout(timeoutId); // Clear the existing timeout
+      clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         setIsSessionExpired(true); // Set session expired to true after inactivity
-      }, SESSION_TIMEOUT); // Set a new timeout
+      }, SESSION_TIMEOUT); 
     };
 
-    // Reset the timeout on activity (mouse movement, clicks, key presses)
     const activityListener = () => {
       resetTimeout();
     };
@@ -65,7 +64,6 @@ const Dashboard = () => {
     window.addEventListener('click', activityListener);
     window.addEventListener('keypress', activityListener);
 
-    // Start the initial session timeout
     resetTimeout();
 
     // Cleanup event listeners and timeout on component unmount
@@ -85,6 +83,7 @@ const Dashboard = () => {
     }
   }, [isSessionExpired]);
 
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -93,33 +92,46 @@ const Dashboard = () => {
     );
   }
 
+  const hasDiscoveryAccess = isAdmin || hasRoleAccess('discovery');
+  const hasScheduleAccess = isAdmin || hasRoleAccess('schedule');
+  const hasBackupAccess = isAdmin || hasRoleAccess('backup');
+
   return (
     <div className="dashboard">
       <main>
         <div className='hello-heading p0'>
-        <h3>Hello {userName}!</h3>
+          <h3>Hello {userName}!</h3>
         </div>
         <Container maxWidth="lg" disableGutters>
           <div className="dashboard-cards-container">
-            <DashboardCard
-              title="Discovery Management"
-              description="Create, debug, and run workflows with Workflow Editor"
-              icon={<Search fontSize="large" />}
-              link={() => navigate("/discovery-management")}
-            />
-            <DashboardCard
-              title="Schedule Management"
-              description="Organize and monitor executions"
-              icon={<Schedule fontSize="large" />}
-              link={() => navigate("/backup-management")}
-            />
-            <DashboardCard
-              title="Backup Management"
-              description="Schedule and manage jobs"
-              icon={<Backup fontSize="large" />}
-              link={() => navigate("/list-device")}
-            />
-             {isAdmin && (
+            {hasDiscoveryAccess && (
+              <DashboardCard
+                title="Discovery Management"
+                description="Create, debug, and run workflows with Workflow Editor"
+                icon={<Search fontSize="large" />}
+                link={() => navigate("/discovery-management")}
+              />
+            )}
+            
+            {hasScheduleAccess && (
+              <DashboardCard
+                title="Schedule Management"
+                description="Organize and monitor executions"
+                icon={<Schedule fontSize="large" />}
+                link={() => navigate("/backup-management")}
+              />
+            )}
+            
+            {hasBackupAccess && (
+              <DashboardCard
+                title="Backup Management"
+                description="Schedule and manage jobs"
+                icon={<Backup fontSize="large" />}
+                link={() => navigate("/list-device")}
+              />
+            )}
+            
+            {isAdmin && (
               <DashboardCard
                 title="User Profile Administrator"
                 description="Create and manage authentications"
@@ -128,7 +140,7 @@ const Dashboard = () => {
               />
             )}
           </div>
-          {/* Stats Container */}
+          
           <div className="stats-container">
             <div className="stat-card">
               <PeopleIcon className="stat-icon" fontSize="large" />
@@ -153,4 +165,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

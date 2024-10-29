@@ -67,21 +67,37 @@ const NavBar = () => {
         );
     }
 
+    const hasDiscoveryAccess = isAdmin || hasRoleAccess('discovery');
+    const hasScheduleAccess = isAdmin || hasRoleAccess('schedule');
+    const hasBackupAccess = isAdmin || hasRoleAccess('backup');
+
+
     return (
         <div className='header'>
             <div className='logos-container'>
                 <Link to="/"><img src={imageUrl} alt='IBM' /></Link>
             </div>
             <nav className='nav-links'>
-                <Link to="/discovery-management" className='nav-item'>Discovery</Link>
-                <Link to="/backup-management" className='nav-item'>Schedule</Link>
-                <Link to="/list-device" className='nav-item'>Backup</Link>
+                {hasDiscoveryAccess && (
+                    <Link to="/discovery-management" className='nav-item'>
+                        Discovery
+                    </Link>
+                )}
+                {hasScheduleAccess && (
+                    <Link to="/backup-management" className='nav-item'>
+                        Schedule
+                    </Link>
+                )}
+                {hasBackupAccess && (
+                    <Link to="/list-device" className='nav-item'>
+                        Backup
+                    </Link>
+                )}
                 {isAdmin && (
                     <Link to="/user-profile-administrator" className='nav-item'>
                         User Profile Administrator
                     </Link>
                 )}
-                {/* <Link to="/user-profile-administrator" className='nav-item'>User Profile Administrator</Link> */}
             </nav>
             <div className="settings-profile-container">
                 <div>
