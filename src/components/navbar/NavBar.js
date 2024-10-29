@@ -37,7 +37,7 @@ const NavBar = () => {
 
     useEffect(() => {
         // Get the username from local storage
-        const storedUsername = localStorage.getItem('username');
+        const storedUsername = sessionStorage.getItem('userName');
         if (storedUsername) {
             setUsername(storedUsername); // Set the username from local storage
         } else {
