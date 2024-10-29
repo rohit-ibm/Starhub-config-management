@@ -10,7 +10,7 @@ import { useAdmin } from './hooks/useAdmin';
 
 const DashboardCard = ({ title, description, icon, link }) => (
   <Card className="dashboard-card">
-    <CardActionArea onClick={link}>
+    <CardActionArea onClick={link} disableRipple >
       <div className="card-icon-container">
         {icon}
       </div>
@@ -96,50 +96,58 @@ const Dashboard = () => {
   const hasScheduleAccess = isAdmin || hasRoleAccess('schedule');
   const hasBackupAccess = isAdmin || hasRoleAccess('backup');
 
+  // Count number of visible cards
+  const visibleCardCount = [
+    hasDiscoveryAccess,
+    hasScheduleAccess,
+    hasBackupAccess,
+    isAdmin
+  ].filter(Boolean).length;
+
   return (
     <div className="dashboard">
-      <main>
-        <div className='hello-heading p0'>
-          <h3>Hello {userName}!</h3>
+    <main>
+      <div className='hello-heading p0'>
+        <h3>Hello {userName}!</h3>
+      </div>
+      <Container maxWidth="lg" disableGutters>
+        <div className="dashboard-cards-container" data-cards={visibleCardCount}>
+          {hasDiscoveryAccess && (
+            <DashboardCard
+              title="Discovery Management"
+              description="Create, debug, and run workflows with Workflow Editor"
+              icon={<Search fontSize="large" />}
+              link={() => navigate("/discovery-management")}
+            />
+          )}
+          
+          {hasScheduleAccess && (
+            <DashboardCard
+              title="Schedule Management"
+              description="Organize and monitor executions"
+              icon={<Schedule fontSize="large" />}
+              link={() => navigate("/backup-management")}
+            />
+          )}
+          
+          {hasBackupAccess && (
+            <DashboardCard
+              title="Backup Management"
+              description="Schedule and manage jobs"
+              icon={<Backup fontSize="large" />}
+              link={() => navigate("/list-device")}
+            />
+          )}
+          
+          {isAdmin && (
+            <DashboardCard
+              title="User Profile Administrator"
+              description="Create and manage authentications"
+              icon={<Security fontSize="large" />}
+              link={() => navigate("/user-profile-administrator")}
+            />
+          )}
         </div>
-        <Container maxWidth="lg" disableGutters>
-          <div className="dashboard-cards-container">
-            {hasDiscoveryAccess && (
-              <DashboardCard
-                title="Discovery Management"
-                description="Create, debug, and run workflows with Workflow Editor"
-                icon={<Search fontSize="large" />}
-                link={() => navigate("/discovery-management")}
-              />
-            )}
-            
-            {hasScheduleAccess && (
-              <DashboardCard
-                title="Schedule Management"
-                description="Organize and monitor executions"
-                icon={<Schedule fontSize="large" />}
-                link={() => navigate("/backup-management")}
-              />
-            )}
-            
-            {hasBackupAccess && (
-              <DashboardCard
-                title="Backup Management"
-                description="Schedule and manage jobs"
-                icon={<Backup fontSize="large" />}
-                link={() => navigate("/list-device")}
-              />
-            )}
-            
-            {isAdmin && (
-              <DashboardCard
-                title="User Profile Administrator"
-                description="Create and manage authentications"
-                icon={<Security fontSize="large" />}
-                link={() => navigate("/user-profile-administrator")}
-              />
-            )}
-          </div>
           
           <div className="stats-container">
             <div className="stat-card">

@@ -117,15 +117,25 @@ main {
 } 
 
 
-.dashboard-cards-container {
+/* .dashboard-cards-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   padding: 1rem;
   gap: 1rem; 
+} */
+
+.dashboard-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start; /* Changed from space-between */
+  padding: 1rem;
+  gap: 1rem;
+  max-width: 1200px; /* Add max-width for better control */
+  margin: 0 auto; /* Center the container */
 }
 
-.dashboard-card {
+/* .dashboard-card {
   flex: 1 1 calc(25% - 1rem); 
   min-width: 220px;
   border-radius: 8px;
@@ -136,29 +146,59 @@ main {
   flex-direction: column;
   justify-content: space-between;
   transition: box-shadow 0.3s ease;
+} */
+
+.dashboard-card {
+  flex: 0 1 calc(25% - 1rem);
+  min-width: 220px;
+  max-width: 300px; /* Add max-width to prevent too large cards */
+  border-radius: 8px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(69, 68, 68, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .dashboard-card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); 
+  transform: translateY(-5px);
 }
 
-@media (max-width: 1200px) {
-  .dashboard-card {
-    flex: 1 1 calc(33% - 1rem); 
-  }
+dashboard-card:hover .card-content {
+  transform: scale(1.02);
 }
 
-@media (max-width: 768px) {
-  .dashboard-card {
-    flex: 1 1 calc(50% - 1rem);
-  }
+.dashboard-card .MuiCardActionArea-root {
+  background-color: transparent !important;
 }
 
-@media (max-width: 480px) {
-  .dashboard-card {
-    flex: 1 1 100%; 
-  }
+.dashboard-card .MuiCardActionArea-root:hover {
+  background-color: transparent !important;
 }
+
+/* Override MUI's ripple effect */
+.dashboard-card .MuiCardActionArea-focusHighlight {
+  background-color: transparent !important;
+}
+
+.dashboard-cards-container:only-child .dashboard-card {
+  max-width: 300px;
+}
+
+.dashboard-cards-container[data-cards="1"] {
+  justify-content: center;
+}
+
+.dashboard-cards-container[data-cards="2"] {
+  justify-content: center;
+}
+.dashboard-cards-container[data-cards="3"] {
+  justify-content: center;
+}
+
 
 .dashboard-card:nth-child(1) {
   background: #5c6bc0;
@@ -184,37 +224,40 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem;
+  padding: 1.5rem;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   background-color: rgba(255, 255, 255, 0.2);
-  margin: 1rem auto 0;
+  margin: 1.5rem auto 0.5rem;
   color: white;
 }
 
 .card-content {
-  padding: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease;
 }
 
 .card-action-area {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+  height: 100%; 
 }
 
 .card-title {
-  padding: 5%;
+  padding: 0.5rem 0;
   font-weight: 500;
   color: white;
   font-family: Roboto, Helvetica Neue, sans-serif;
 }
 
 .card-description {
-  padding: 3%;
+  padding: 0.5rem 0;
   color: white;
   font-family: Roboto, Helvetica Neue, sans-serif;
+  line-height: 1.4;
 }
 
 .hello-heading {
@@ -267,4 +310,25 @@ main {
 
 h3{
   text-transform: capitalize;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-card {
+    flex: 0 1 calc(33.33% - 1rem);
+    max-width: calc(33.33% - 1rem);
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-card {
+    flex: 0 1 calc(50% - 1rem);
+    max-width: calc(50% - 1rem);
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-card {
+    flex: 0 1 100%;
+    max-width: 100%;
+  }
 }
