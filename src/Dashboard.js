@@ -3,11 +3,9 @@ import { Link, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import './Dashboard.css';
 import { Search, Schedule, Backup, Security } from '@mui/icons-material';
 import { Card, CardActionArea, CardContent, Typography, Container, Box, CircularProgress } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
 import PeopleIcon from '@mui/icons-material/People';
 import DevicesIcon from '@mui/icons-material/Devices';
 import TaskIcon from '@mui/icons-material/Task';
-import imageURL from '../src/Assets/IBM_LOGO.svg';
 import { useAdmin } from './hooks/useAdmin';
 
 const DashboardCard = ({ title, description, icon, link }) => (
