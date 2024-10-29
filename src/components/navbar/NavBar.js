@@ -9,7 +9,7 @@ const NavBar = () => {
     const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const { isAdmin, isLoading, userName } = useAdmin();
+    const { isAdmin, isLoading, userName, hasRoleAccess } = useAdmin();
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -48,21 +48,37 @@ const NavBar = () => {
         );
     }
 
+    const hasDiscoveryAccess = isAdmin || hasRoleAccess('discovery');
+    const hasScheduleAccess = isAdmin || hasRoleAccess('schedule');
+    const hasBackupAccess = isAdmin || hasRoleAccess('backup');
+
+
     return (
         <div className='header'>
             <div className='logos-container'>
                 <Link to="/"><img src={imageUrl} alt='IBM' /></Link>
             </div>
             <nav className='nav-links'>
-                <Link to="/discovery-management" className='nav-item'>Discovery</Link>
-                <Link to="/backup-management" className='nav-item'>Schedule</Link>
-                <Link to="/list-device" className='nav-item'>Backup</Link>
+                {hasDiscoveryAccess && (
+                    <Link to="/discovery-management" className='nav-item'>
+                        Discovery
+                    </Link>
+                )}
+                {hasScheduleAccess && (
+                    <Link to="/backup-management" className='nav-item'>
+                        Schedule
+                    </Link>
+                )}
+                {hasBackupAccess && (
+                    <Link to="/list-device" className='nav-item'>
+                        Backup
+                    </Link>
+                )}
                 {isAdmin && (
                     <Link to="/user-profile-administrator" className='nav-item'>
                         User Profile Administrator
                     </Link>
                 )}
-                {/* <Link to="/user-profile-administrator" className='nav-item'>User Profile Administrator</Link> */}
             </nav>
             <div className="settings-container" ref={dropdownRef}>
                 <button className="settings-button" onClick={toggleDropdown}>
@@ -71,10 +87,10 @@ const NavBar = () => {
                 {isDropdownOpen && (
                     <div className="dropdown">
                         <ul>
-                            <li>Discovery Management</li>
-                            <li>Schedule Management</li>
-                            <li>Backup Management</li>
-                            <li>User Profile Administrator</li>
+                            {hasDiscoveryAccess && <li>Discovery Management</li>}
+                            {hasScheduleAccess && <li>Schedule Management</li>}
+                            {hasBackupAccess && <li>Backup Management</li>}
+                            {isAdmin && <li>User Profile Administrator</li>}
                         </ul>
                     </div>
                 )}
@@ -82,6 +98,6 @@ const NavBar = () => {
             <button onClick={handleLogout} className="logout-button">Logout</button>
         </div>
     );
-}
+};
 
 export default NavBar;

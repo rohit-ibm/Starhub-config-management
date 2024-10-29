@@ -1,37 +1,3 @@
-// import { useState, useEffect } from 'react';
-
-// export const useAdmin = () => {
-//   const [isAdmin, setIsAdmin] = useState(false);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [userName, setUserName] = useState('');
-
-//   useEffect(() => {
-//     const checkAdminStatus = () => {
-//       try {
-//         const userGroups = JSON.parse(sessionStorage.getItem('userGroups') || '[]');
-//         const isAdminUser = userGroups.some(group => 
-//           group.group_name.toLowerCase() === 'administrator'
-//         );
-//         setIsAdmin(isAdminUser);
-        
-//         // Get username from sessionStorage
-//         const storedUserName = sessionStorage.getItem('userName');
-//         setUserName(storedUserName || 'User'); // Fallback to 'User' if no username found
-//       } catch (error) {
-//         console.error('Error checking admin status:', error);
-//         setIsAdmin(false);
-//         setUserName('User');
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     checkAdminStatus();
-//   }, []);
-
-//   return { isAdmin, isLoading, userName };
-// };
-
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -88,21 +54,16 @@ export const useAdmin = () => {
               setIsAdmin(freshIsAdmin);
             }
           } catch (error) {
-            console.warn('Could not refresh user groups:', error);
+            // console.warn('Could not refresh user groups:', error);
             if (error.response?.status === 401) {
-              // Token might be expired - clear session
               clearSession();
-            } else {
-              // Keep using stored values for other types of errors
-              console.log('Using cached group data due to refresh error');
             }
           }
-        } else if (!storedUserId || !storedToken) {
-          // If we're missing critical session data, clear everything
+        } else {
           clearSession();
         }
       } catch (error) {
-        console.error('Error checking admin status:', error);
+        // console.error('Error checking admin status:', error);
         clearSession();
       } finally {
         setIsLoading(false);
@@ -118,7 +79,7 @@ export const useAdmin = () => {
     setUserName('User');
     setUserGroups([]);
     setUserId(null);
-    
+
     // Clear all session data
     sessionStorage.removeItem('userGroups');
     sessionStorage.removeItem('isAdmin');
@@ -128,25 +89,30 @@ export const useAdmin = () => {
     localStorage.removeItem('token');
   };
 
-  // Helper function to check if user has a specific group
-  const hasGroup = (groupName) => {
-    return userGroups.some(group => 
-      group.group_name.toLowerCase() === groupName.toLowerCase()
-    );
-  };
+  const hasRoleAccess = (feature) => {
+    // console.log(`Checking access for ${feature}:`, userGroups);
+    
+    if (isAdmin) {
+      // console.log('User is admin, granting access');
+      return true;
+    }
 
-  // Helper function to get all user groups
-  const getUserGroups = () => {
-    return userGroups;
-  };
+    const groupMapping = {
+      'discovery': 'DiscoveryManagement',
+      'schedule': 'Schedule Management',
+      'backup': 'Backup Management'
+    };
 
-  // Helper to check if session is valid
-  const isSessionValid = () => {
-    return Boolean(
-      sessionStorage.getItem('isAuthenticated') && 
-      localStorage.getItem('token') &&
-      sessionStorage.getItem('userId')
-    );
+    const requiredGroup = groupMapping[feature];
+    const hasAccess = userGroups.some(group => group.group_name === requiredGroup);
+    
+    // console.log(`Checking ${feature} access:`, {
+    //   requiredGroup,
+    //   hasAccess,
+    //   groups: userGroups.map(g => g.group_name)
+    // });
+
+    return hasAccess;
   };
 
   return {
@@ -154,10 +120,8 @@ export const useAdmin = () => {
     isLoading,
     userName,
     userId,
-    hasGroup,
-    getUserGroups,
-    isSessionValid,
     userGroups,
+    hasRoleAccess,
     clearSession
   };
 };

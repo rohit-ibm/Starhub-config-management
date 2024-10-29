@@ -21,7 +21,7 @@ const Login = () => {
 
  // Helper function to extract user ID from various token formats
  const extractUserId = (token) => {
-  console.log('Extracting user ID from token:', token);
+  // console.log('Extracting user ID from token:', token);
 
   if (typeof token === 'object' && token !== null) {
     // Handle JSON object response
@@ -41,7 +41,7 @@ const Login = () => {
         return payload.user_id || payload.sub || payload.id;
       }
     } catch (jwtError) {
-      console.log('JWT decoding failed:', jwtError);
+      // console.log('JWT decoding failed:', jwtError);
     }
   }
 
@@ -50,106 +50,110 @@ const Login = () => {
 };
 
 
-  // // Helper function to safely decode and examine token
-  // const decodeToken = (token) => {
-  //   console.log('Raw token:', token); // Debug log
-
-  //   try {
-  //     // Try parsing as JSON first
-  //     const jsonToken = JSON.parse(token);
-  //     console.log('Token parsed as JSON:', jsonToken);
-  //     return { 
-  //       userId: jsonToken.user_id || jsonToken.id || jsonToken.userId,
-  //       type: 'json'
-  //     };
-  //   } catch (e) {
-  //     // If JSON parsing fails, try JWT decoding
-  //     try {
-  //       const parts = token.split('.');
-  //       if (parts.length >= 2) {
-  //         const payload = JSON.parse(atob(parts[1]));
-  //         console.log('Token decoded as JWT:', payload);
-  //         return { 
-  //           userId: payload.user_id || payload.sub || payload.id,
-  //           type: 'jwt'
-  //         };
-  //       }
-  //     } catch (jwtError) {
-  //       console.log('JWT decoding failed:', jwtError);
-  //     }
-  //   }
-
-  //   // If all parsing fails, return the token as is
-  //   console.log('Using token as raw value');
-  //   return { userId: token, type: 'raw' };
-  // };
-
-  const fetchUserGroups = async (userId) => {
-    try {
-      console.log('Fetching user groups for userId:', userId);
-      const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`, {
-        headers: {
-          'accept': 'application/json'
-        }
-      });
-      console.log('User groups response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user groups:', error);
-      return [];
-    }
-  };
-  const setupUserSession = async (loginResponse, isTokenLogin = false) => {
-    if (loginResponse.status === 200 && loginResponse.data) {
-      const token = loginResponse.data;
-      console.log('Login successful, received token:', token);
-      
-      localStorage.setItem('token', JSON.stringify(token));
-      sessionStorage.setItem('userName', username);
-
-      let userId;
-      if (!isTokenLogin) {
-        // For local login
-        userId = extractUserId(token);
-        if (!userId) {
-          console.error('Could not extract userId from token');
-          setError('Error processing login information');
-          setOpen(false);
-          return;
-        }
-      } else {
-        // For admin token login
-        userId = '24';
+const fetchUserGroups = async (userId) => {
+  try {
+    // console.log('Fetching user groups for userId:', userId);
+    const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`, {
+      headers: {
+        'accept': 'application/json'
       }
+    });
+    
+    const groups = response.data;
+    // console.log('User groups response:', groups);
 
-      console.log('Using userId:', userId);
+    // Process groups to determine roles
+    const roles = {
+      isDiscovery: groups.some(group => 
+        group.group_name.toLowerCase() === 'discoverymanagement'
+      ),
+      isSchedule: groups.some(group => 
+        group.group_name.toLowerCase() === 'schedule management'
+      ),
+      isBackup: groups.some(group => 
+        group.group_name.toLowerCase() === 'backup management'
+      )
+    };
 
-      try {
-        const userGroups = await fetchUserGroups(userId);
-        console.log('Fetched user groups:', userGroups);
-        
-        const isAdmin = userGroups.some(group => 
-          group.group_name.toLowerCase() === 'administrator'
-        );
-        console.log('Is admin user:', isAdmin);
+    return {
+      groups,
+      roles
+    };
+  } catch (error) {
+    // console.error('Error fetching user groups:', error);
+    return {
+      groups: [],
+      roles: {
+        isDiscovery: false,
+        isSchedule: false,
+        isBackup: false
+      }
+    };
+  }
+};
 
-        // Store all user information
-        sessionStorage.setItem('isAuthenticated', 'true');
-        sessionStorage.setItem('userGroups', JSON.stringify(userGroups));
-        sessionStorage.setItem('isAdmin', JSON.stringify(isAdmin));
-        sessionStorage.setItem('userId', userId);
 
-        navigate('/dashboard');
-      } catch (error) {
-        console.error('Error in session setup:', error);
-        setError('Error setting up user session');
+const setupUserSession = async (loginResponse, isTokenLogin = false) => {
+  if (loginResponse.status === 200 && loginResponse.data) {
+    const token = loginResponse.data;
+    // console.log('Login successful, received token:', token);
+    
+    localStorage.setItem('token', JSON.stringify(token));
+    sessionStorage.setItem('userName', username);
+
+    let userId;
+    if (!isTokenLogin) {
+      userId = extractUserId(token);
+      if (!userId) {
+        // console.error('Could not extract userId from token');
+        setError('Error processing login information');
         setOpen(false);
+        return;
       }
     } else {
-      setOpen(false);
-      setError('Invalid username or password');
+      userId = '24'; // Admin token login
     }
-  };
+
+    // console.log('Using userId:', userId);
+
+    try {
+      const { groups, roles } = await fetchUserGroups(userId);
+      
+      // Check for admin status as before
+      const isAdmin = groups.some(group => 
+        group.group_name.toLowerCase() === 'administrator'
+      );
+      
+      // console.log('Is admin user:', isAdmin);
+      // console.log('User roles:', roles);
+
+      // Store all user information
+      sessionStorage.setItem('isAuthenticated', 'true');
+      sessionStorage.setItem('userGroups', JSON.stringify(groups));
+      sessionStorage.setItem('isAdmin', JSON.stringify(isAdmin));
+      sessionStorage.setItem('userId', userId);
+      
+      // Store role information
+      sessionStorage.setItem('userRoles', JSON.stringify(roles));
+
+      // If user has no roles and is not admin, show error
+      if (!isAdmin && !roles.isDiscovery && !roles.isSchedule && !roles.isBackup) {
+        setError('User does not have any assigned roles');
+        setOpen(false);
+        return;
+      }
+
+      navigate('/dashboard');
+    } catch (error) {
+      // console.error('Error in session setup:', error);
+      setError('Error setting up user session');
+      setOpen(false);
+    }
+  } else {
+    setOpen(false);
+    setError('Invalid username or password');
+  }
+};
 
   const handleTokenLogin = async (e) => {
     e.preventDefault();
@@ -170,7 +174,7 @@ const Login = () => {
     } catch (error) {
       setError('Failed to login');
       setOpen(false);
-      console.error('Login error:', error);
+      // console.error('Login error:', error);
     }
   };
 
@@ -196,7 +200,7 @@ const Login = () => {
     } catch (error) {
       setError('Failed to login');
       setOpen(false);
-      console.error('Login error:', error);
+      // console.error('Login error:', error);
     }
   };
 
