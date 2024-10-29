@@ -11,20 +11,11 @@ import { Search, Schedule, Backup, Security } from '@mui/icons-material';
 const NavBar = () => {
     const navigate = useNavigate();
     const dropdownRef = useRef(null);
-    const { isAdmin, isLoading, userName } = useAdmin();
     const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const [username, setUsername] = useState('');
-
-    useEffect(() => {
-        // Get the username from local storage
-        const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername); // Set the username from local storage
-        } else {
-            setUsername(''); // Default to empty if not found
-        }
-    }, []);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const { isAdmin, isLoading, userName, hasRoleAccess } = useAdmin();
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -43,6 +34,17 @@ const NavBar = () => {
     const toggleProfileDropdown = () => {
         setIsProfileDropdownOpen(!isProfileDropdownOpen);
     };
+
+    useEffect(() => {
+        // Get the username from local storage
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+            setUsername(storedUsername); // Set the username from local storage
+        } else {
+            setUsername(''); // Default to empty if not found
+        }
+    }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
