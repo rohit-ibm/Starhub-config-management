@@ -1,7 +1,7 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 80vh;
 }
 body {
   font-family: 'Roboto', sans-serif;
