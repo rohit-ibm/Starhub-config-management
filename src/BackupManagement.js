@@ -8,6 +8,10 @@ import { ClipLoader } from 'react-spinners';
 import deviceLoader from './device-loader-img.gif';
 import { TableRows } from '@mui/icons-material';
 import { TableCell } from '@mui/material';
+import config from './config.json';
+
+const PAS_IP = config.PAS_IP;
+const BACKEND_PORT = config.BACKEND_PORT;
 
 
 const App = () => {
@@ -29,7 +33,7 @@ const App = () => {
   const [time, setTime] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
 
-  const devicesPerPage = 6; 
+  const devicesPerPage = 6;
 
   const staticDeviceGroups = [
     {
@@ -57,7 +61,7 @@ const App = () => {
       //setLoadingData(true);
       try {
         setDeviceGroups(staticDeviceGroups);
-        const response = await axios.get('http://9.46.112.167:5000/inventory_data', {
+        const response = await axios.get(`http://${PAS_IP}:${BACKEND_PORT}/inventory_data`, {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -111,32 +115,54 @@ const App = () => {
   };
 
   const handleImmediateBackup = async () => {
-    const baseUrl = 'http://9.46.112.167:5000/inventory_data/devices';
+    const baseUrl = `http://${PAS_IP}:${BACKEND_PORT}/inventory_data/devices`;
     const url = `${baseUrl}?${selectedDevices.map(device => `devices=${device}`).join('&')}`;
     setLoadingBackup(true);
 
     try {
+      // Fetch inventory data
       const getResponse = await axios.get(url, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
 
-      const postResponse = await axios.post('http://9.46.66.96:9000/backup', getResponse.data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Parse response to get the inventory array
+      const inventory = getResponse.data?.inventory || [];
 
-      console.log('POST Response:', postResponse);
+      // Iterate over inventory and POST each to its respective backup collector
+      for (const device of inventory) {
+        const { backup_collector_details } = device;
 
-      alert('Immediate backup initiated');
+        if (!backup_collector_details) {
+          console.warn(`No backup_collector_details found for device:`, device);
+          continue;
+        }
+
+        // Prepare POST data
+        const postData = {
+          inventory: [device], // Wrap the device details in an "inventory" array
+        };
+
+        try {
+          // POST API call to initiate backup
+          const postResponse = await axios.post(`http://${backup_collector_details}/backup`, postData, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          console.log(`Backup initiated for device:`, postResponse.data);
+        } catch (error) {
+          console.error(`Error initiating backup for device:`, error);
+        }
+      }
+
+      alert('Immediate backup initiated for the selected devices');
     } catch (error) {
-      console.error('Error initiating immediate backup:', error);
-      
+      console.error('Error fetching inventory data:', error);
       alert('Failed to initiate immediate backup');
-    }
-    finally {
+    } finally {
       setLoadingBackup(false);
     }
   };
@@ -147,7 +173,7 @@ const App = () => {
 
   const handleScheduleBackup = () => {
     setShowDatePicker(true);
-    setShowPicker(true); 
+    setShowPicker(true);
   };
 
   const handleDateChange = (date) => {
@@ -166,7 +192,7 @@ const App = () => {
     //const selectedDateFormatted = new Date(selectedDate).toISOString().slice(0, 19).replace('T', ' ');
 
     try {
-      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+      const response = await axios.post(`http://${PAS_IP}:${BACKEND_PORT}/schedules`, {
         schedule: 'custom',
         devices: selectedDevices,
         customDate: selectedDateFormatted
@@ -192,7 +218,7 @@ const App = () => {
     setSelectedDevices(newSelectedDevices);
   };
 
-  
+
   const handleDeleteDevices = async () => {
     if (selectedDevices.length === 0) {
       alert('Please select at least one device to delete.');
@@ -201,7 +227,7 @@ const App = () => {
 
     try {
       const response = await axios.delete(
-        `http://9.46.112.167:5000/delete_devices?devices=${selectedDevices.join(',')}`,
+        `http://${PAS_IP}:${BACKEND_PORT}/delete_devices?devices=${selectedDevices.join(',')}`,
         {
           headers: {
             'Accept': 'application/json',
@@ -226,7 +252,7 @@ const App = () => {
   };
 
   const handleSearch = () => {
-    const filteredDevices = allDevices.filter(device => 
+    const filteredDevices = allDevices.filter(device =>
       device.hostname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.ip_address.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -245,7 +271,7 @@ const App = () => {
     const minute = time.getMinutes();
 
     try {
-      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+      const response = await axios.post(`http://${PAS_IP}:${BACKEND_PORT}/schedules`, {
         schedule: 'weekly',
         devices: selectedDevices,
         dayOfWeek: weekDay,
@@ -276,7 +302,7 @@ const App = () => {
     const minute = time.getMinutes();
 
     try {
-      const response = await axios.post('http://9.46.112.167:5000/schedules', {
+      const response = await axios.post(`http://${PAS_IP}:${BACKEND_PORT}/schedules`, {
         schedule: 'monthly',
         devices: selectedDevices,
         day: monthDay,
@@ -313,7 +339,7 @@ const App = () => {
     return <div>
       Loading device data...
       <img src={deviceLoader} alt="Device Loader" className="device-loader" />
-      </div>; // Message for backup loading
+    </div>; // Message for backup loading
   }
 
   if (error) {
@@ -434,15 +460,15 @@ const App = () => {
               <button onClick={handleCustomBackupSubmit} className="submit-button">Submit</button>
             </div>
           )}
-          
+
         </div>
       )}
       <div className="search-container">
-        <input 
-          type="text" 
-          placeholder="Search by hostname, IP address or location" 
-          value={searchTerm} 
-          onChange={(e) => setSearchTerm(e.target.value)} 
+        <input
+          type="text"
+          placeholder="Search by hostname, IP address or location"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
         <button onClick={handleSearch} className="search-button">Search</button>
@@ -456,9 +482,9 @@ const App = () => {
               {selectedDevices.length === deviceGroupDetails?.devices.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
-          
+
           <table className="table">
-            
+
             <thead>
               <tr>
                 <th className="tableHeader">Select</th>
@@ -474,46 +500,46 @@ const App = () => {
             <tbody>
               {currentDevices.map(device => (
                 device.backup_status === "Success" ? (
-                <tr key={device.hostname}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedDevices.includes(device.hostname)}
-                      onChange={(e) => handleSelectDevice(e, device.hostname)}
-                    />
-                  </td>
-                  <td className="tableCell">{device.id}</td>
-                  <td className="tableCell">{device.hostname}</td>
-                  <td className="tableCell">{device.ip_address}</td>
-                  <td className="tableCell">{device.location}</td>
-                  <td className="tableCell">{device.device_type}</td>
-                  <td className="tableCell success">{device.backup_status}</td>
-                  <td className="tableCell">{device.next_backup_time}</td>
-                </tr>
-                )
-                :
-                (
                   <tr key={device.hostname}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedDevices.includes(device.hostname)}
-                      onChange={(e) => handleSelectDevice(e, device.hostname)}
-                    />
-                  </td>
-                  <td className="tableCell">{device.id}</td>
-                  <td className="tableCell">{device.hostname}</td>
-                  <td className="tableCell">{device.ip_address}</td>
-                  <td className="tableCell">{device.location}</td>
-                  <td className="tableCell">{device.device_type}</td>
-                  <td className="tableCell failed">{device.backup_status}</td>
-                  <td className="tableCell">{device.next_backup_time}</td>
-                </tr>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedDevices.includes(device.hostname)}
+                        onChange={(e) => handleSelectDevice(e, device.hostname)}
+                      />
+                    </td>
+                    <td className="tableCell">{device.id}</td>
+                    <td className="tableCell">{device.hostname}</td>
+                    <td className="tableCell">{device.ip_address}</td>
+                    <td className="tableCell">{device.location}</td>
+                    <td className="tableCell">{device.device_type}</td>
+                    <td className="tableCell success">{device.backup_status}</td>
+                    <td className="tableCell">{device.next_backup_time}</td>
+                  </tr>
                 )
+                  :
+                  (
+                    <tr key={device.hostname}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedDevices.includes(device.hostname)}
+                          onChange={(e) => handleSelectDevice(e, device.hostname)}
+                        />
+                      </td>
+                      <td className="tableCell">{device.id}</td>
+                      <td className="tableCell">{device.hostname}</td>
+                      <td className="tableCell">{device.ip_address}</td>
+                      <td className="tableCell">{device.location}</td>
+                      <td className="tableCell">{device.device_type}</td>
+                      <td className="tableCell failed">{device.backup_status}</td>
+                      <td className="tableCell">{device.next_backup_time}</td>
+                    </tr>
+                  )
               ))}
             </tbody>
           </table>
-          
+
           {/* <div className="pagination">
             {currentPage > 1 && (
               <button onClick={handlePrevPage} className="pagination-button">Previous</button>
@@ -531,7 +557,7 @@ const App = () => {
         </div>
       )}
 
-      
+
     </div>
   );
 };
@@ -539,29 +565,28 @@ const App = () => {
 const Pagination = ({ currentPage, handleNextPage, handlePrevPage, totalPages }) => {
   return (
     <div className="pagination">
-      <button 
-        onClick={handlePrevPage} 
-        disabled={currentPage === 1} 
+      <button
+        onClick={handlePrevPage}
+        disabled={currentPage === 1}
         className="page-link">
         {'<'}
       </button>
       <span className="page-info">
         Page <span className="current-page">{currentPage}</span> of {totalPages}
       </span>
-      <button 
-        onClick={handleNextPage} 
-        disabled={currentPage === totalPages} 
+      <button
+        onClick={handleNextPage}
+        disabled={currentPage === totalPages}
         className="page-link">
         {'>'}
       </button>
     </div>
-  
-    
+
+
   );
 
-  
+
 };
 
 export default App;
-
 

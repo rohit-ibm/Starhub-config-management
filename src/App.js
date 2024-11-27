@@ -6,6 +6,7 @@ import CreateUser from './CreateUser';
 import DiscoveryManagement from './DiscoveryManagement';
 import BackupManagement from './BackupManagement';
 import ListDevice from './ListDevice';
+import RemoteCollector from './RemoteCollector';
 import UserProfileAdministrator from './UserProfileAdministrator';
 import CompareBackup from './CompareBackup';
 import ViewFile from './ViewFile';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/compare-files/:hostname" element={<ProtectedRoute element={<><NavBar /><CompareFiles /></>} />} />
           <Route path="/user-profile-administrator" element={<ProtectedRoute element={<><NavBar /><UserProfileAdministrator /></>} />} />
           <Route path="/create-user" element={<ProtectedRoute element={<><NavBar /><CreateUser /></>} />} />
+          <Route path="remote-collector" element={<ProtectedRoute element={<><NavBar /><RemoteCollector /></>} />} />
           <Route path="/" element={<Navigate to="/dashboard/discovery-management" />} />
         </Routes>
       </div>

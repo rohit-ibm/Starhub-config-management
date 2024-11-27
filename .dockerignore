@@ -1,1 +1,22 @@
 .env
+
+# Ignore configuration and deployment files
+config/
+deploy.sh
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Ignore Git repository files
+.git/
+.gitignore
+
+# Ignore dependencies (node_modules will be installed during build)
+node_modules/
+
+# Ignore RBAC files
+rbac/
+
+# Ignore stop script
+stop-app.sh
+

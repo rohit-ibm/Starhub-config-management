@@ -3,28 +3,14 @@ import logging
 import urllib3
 import requests
 from requests.exceptions import RequestException
+from dotenv import load_dotenv
 import base64
 
 # Suppress InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Custom function to load .env variables
-def load_env(file_path=".env"):
-    """Load environment variables from a .env file."""
-    if not os.path.exists(file_path):
-        logging.warning(f"{file_path} does not exist. Skipping environment variable loading.")
-        return
-
-    with open(file_path, "r") as file:
-        for line in file:
-            line = line.strip()
-            if line and not line.startswith("#"):  # Ignore empty lines and comments
-                if "=" in line:
-                    key, value = line.split("=", 1)  # Split on the first '='
-                    os.environ[key.strip()] = value.strip()
-
-# Load environment variables
-load_env()
+# Load environment variables from a .env file, if available
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,12 +33,13 @@ GET_GROUP = f"http://{CONFIG_IP}:{CONFIG_PORT}/groups"
 USERNAME = base64.b64decode(os.getenv("AUTH_USERNAME_BASE64")).decode("utf-8")
 PASSWORD = base64.b64decode(os.getenv("AUTH_PASSWORD_BASE64")).decode("utf-8")
 
+
 # Define valid roles and their corresponding group names
 ROLE_GROUP_MAPPING = {
-    "cm-Administrator": "Administrator",
-    "cm-DiscoveryManagement": "DiscoveryManagement",
-    "cm-ScheduleManagement": "Schedule Management",
-    "cm-BackupManagement": "Backup Management"
+    "cm-Administrator": "Administrator", 
+    "cm-DiscoveryManagement": "DiscoveryManagement", 
+    "cm-ScheduleManagement": "Schedule Management", 
+    "cm-BackupManagement": "Backup Management" 
 }
 
 def authenticate(url, username, password):
@@ -64,7 +51,7 @@ def authenticate(url, username, password):
         "name": username,
         "password": password
     }
-
+    
     try:
         logger.info("Authenticating with the server...")
         res = requests.post(url, headers=headers, json=data, verify=False)
@@ -80,12 +67,13 @@ def authenticate(url, username, password):
         logger.error(f"Authentication failed: {e}")
         return None
 
+
 def get_users(token):
     headers = {
         "Accept": "application/json",
         "X-AUTH-TOKEN": token
     }
-
+    
     try:
         logger.info("Fetching user list from the server...")
         response = requests.get(f"{USERS_URL}?page=0&size=20", headers=headers, verify=False)
@@ -121,7 +109,7 @@ def create_user(username, password, email):
         "password": password,
         "email": email
     }
-
+    
     try:
         logger.info(f"Attempting to create user: {username}")
         response = requests.post(CREATE_USER_URL, headers=headers, json=data)
@@ -202,7 +190,7 @@ def create_users_from_nms(token):
                 # After creating the user, fetch the user_id using the API
                 newly_created_users = fetch_existing_users()  # Refresh the existing users
                 new_user_id = newly_created_users.get(username)  # Get user_id after creation
-
+                
                 # Assign user to all valid groups
                 for group_id in user_groups:
                     assign_user_to_group(new_user_id, group_id)

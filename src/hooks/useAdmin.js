@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config.json';
+
+
+const PAS_IP = config.PAS_IP;
+const RBAC_PORT = config.RBAC_PORT;
+
 
 export const useAdmin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -28,11 +34,11 @@ export const useAdmin = () => {
         if (storedUserId && storedToken) {
           try {
             // Parse token if it's stored as a JSON string
-            const token = storedToken.startsWith('{') ? 
+            const token = storedToken.startsWith('{') ?
               JSON.parse(storedToken) : storedToken;
 
             const response = await axios.get(
-              `http://9.46.112.167:8001/get_user_groups_and_tasks/${storedUserId}`,
+              `http://${PAS_IP}:${RBAC_PORT}/get_user_groups_and_tasks/${storedUserId}`,
               {
                 headers: {
                   'accept': 'application/json',
@@ -42,7 +48,7 @@ export const useAdmin = () => {
             );
 
             const freshGroups = response.data;
-            const freshIsAdmin = freshGroups.some(group => 
+            const freshIsAdmin = freshGroups.some(group =>
               group.group_name.toLowerCase() === 'administrator'
             );
 
@@ -91,7 +97,7 @@ export const useAdmin = () => {
 
   const hasRoleAccess = (feature) => {
     // console.log(`Checking access for ${feature}:`, userGroups);
-    
+
     if (isAdmin) {
       // console.log('User is admin, granting access');
       return true;
@@ -105,7 +111,7 @@ export const useAdmin = () => {
 
     const requiredGroup = groupMapping[feature];
     const hasAccess = userGroups.some(group => group.group_name === requiredGroup);
-    
+
     // console.log(`Checking ${feature} access:`, {
     //   requiredGroup,
     //   hasAccess,

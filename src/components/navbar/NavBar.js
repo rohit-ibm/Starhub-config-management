@@ -72,6 +72,9 @@ const NavBar = () => {
     const hasDiscoveryAccess = isAdmin || hasRoleAccess('discovery');
     const hasScheduleAccess = isAdmin || hasRoleAccess('schedule');
     const hasBackupAccess = isAdmin || hasRoleAccess('backup');
+    const navigateToRemoteCollector = () => {
+        navigate('/remote-collector'); 
+    };
 
 
     return (
@@ -113,6 +116,7 @@ const NavBar = () => {
                                 <li>Discovery Management</li>
                                 <li>Schedule Management</li>
                                 <li>Backup Management</li>
+			        <li onClick={navigateToRemoteCollector}>Remote Collector</li>
                                 <li>User Profile Administrator</li>
                             </ul>
                         </div>

@@ -1,8 +1,8 @@
-import requests
-import urllib3
 import os
-import base64
 import logging
+import urllib3
+import requests
+import base64
 
 # Suppress InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -11,7 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Custom dotenv function
+# Load environment variables
 def load_env(file_path=".env"):
     """Load environment variables from a .env file."""
     if not os.path.exists(file_path):
@@ -26,28 +26,50 @@ def load_env(file_path=".env"):
                     key, value = line.split("=", 1)  # Split on the first '='
                     os.environ[key.strip()] = value.strip()
 
-# Load environment variables from the .env file
 load_env()
 
-# Base IP and Port
+# Environment variables
 NMS_IP = os.getenv("NMS_IP")
 API_PORT = os.getenv("API_PORT")
 
-# Construct URLs using base IP and port
 AUTH_URL = f"https://{NMS_IP}:{API_PORT}/api/v2/authentication/signin"
-USERS_URL = f"https://{NMS_IP}:{API_PORT}/api/v2/users"
 ROLE_URL = f"https://{NMS_IP}:{API_PORT}/api/v2/roles"
 ADMIN_API_URL = f"https://{NMS_IP}:{API_PORT}/api/v2/roles"
-ROLE_FILTER = f"https://{NMS_IP}:{API_PORT}/api/v2/roles"
 
-# Decode Base64 encoded credentials
 AUTH_USERNAME = base64.b64decode(os.getenv("AUTH_USERNAME_BASE64")).decode("utf-8")
 AUTH_PASSWORD = base64.b64decode(os.getenv("AUTH_PASSWORD_BASE64")).decode("utf-8")
+ROLE_NAMES = os.getenv(
+    "ROLE_NAMES",
+    "cm-Administrator,cm-DiscoveryManagement,cm-ScheduleManagement,cm-BackupManagement"
+).strip('"').split(",")
 
-# Get role names from .env or default roles if not set
-ROLE_NAMES = os.getenv("ROLE_NAMES", "cm-Administrator,cm-DiscoveryManagement,cm-ScheduleManagement,cm-BackupManagement").strip('"').split(",")
+# Authentication function
+def authenticate(auth_url, username, password):
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    data = {
+        "name": username,
+        "password": password
+    }
 
-# Check if a role with the specified name exists
+    try:
+        logger.info("Authenticating with the server...")
+        res = requests.post(auth_url, headers=headers, json=data, verify=False)
+        res.raise_for_status()
+        token = res.json().get("token")
+        if token:
+            logger.info("Authentication successful.")
+            return token
+        else:
+            logger.error("Token not found in authentication response.")
+            return None
+    except requests.RequestException as e:
+        logger.error(f"Authentication failed: {e}")
+        return None
+
+# Check if a role exists
 def role_exists(role_name, token):
     headers = {
         "Accept": "application/json",
@@ -64,41 +86,40 @@ def role_exists(role_name, token):
                 logger.info(f"Role '{role_name}' exists.")
                 return True
         return False
-
     except requests.RequestException as e:
-        logger.error(f"An error occurred while checking existence of role '{role_name}': {e}")
+        logger.error(f"Error while checking role '{role_name}': {e}")
         return False
 
-# Get the administrator id
-def get_administrators_id(admin_api_url, auth_token, role_name="Administrators"):
+# Fetch Administrator ID
+def get_administrators_id(admin_api_url, token, role_name="Administrators"):
     headers = {
         "Accept": "application/json",
-        "X-AUTH-TOKEN": auth_token
+        "X-AUTH-TOKEN": token
     }
 
     try:
+        logger.info(f"Fetching roles from {admin_api_url}...")
         response = requests.get(admin_api_url, headers=headers, verify=False)
         response.raise_for_status()
-        data = response.json()
+        roles = response.json().get("content", [])
 
-        for role in data.get("content", []):
+        for role in roles:
             if role.get("name") == role_name:
-                logger.info(f"Administrator role '{role_name}' found with ID: {role.get('id')}.")
+                logger.info(f"Found role '{role_name}' with ID: {role.get('id')}")
                 return role.get("id")
 
         logger.warning(f"Role '{role_name}' not found.")
         return None
-
     except requests.RequestException as e:
-        logger.error(f"An error occurred while fetching administrators ID: {e}")
+        logger.error(f"Error fetching administrators ID: {e}")
         return None
 
-# Create ConfigMgt role if it doesn't exist
-def create_configMgt_role(parent_id, role_filter_url, auth_token):
+# Create ConfigMgt role
+def create_configMgt_role(parent_id, role_url, token):
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "X-AUTH-TOKEN": auth_token
+        "X-AUTH-TOKEN": token
     }
 
     role_data = {
@@ -106,21 +127,17 @@ def create_configMgt_role(parent_id, role_filter_url, auth_token):
         "parentId": parent_id
     }
 
-    if role_exists("ConfigMgt-roles", auth_token):
-        logger.info("Skipping creation of ConfigMgt-roles as it already exists.")
+    if role_exists("ConfigMgt-roles", token):
+        logger.info("ConfigMgt-roles already exists. Skipping creation.")
         return None
 
     try:
-        response = requests.post(role_filter_url, headers=headers, json=role_data, verify=False)
+        response = requests.post(role_url, headers=headers, json=role_data, verify=False)
         response.raise_for_status()
-
-        role_response = response.json()
-        role_response["parentId"] = parent_id
-        logger.info("ConfigMgt-roles created successfully: %s", role_response)
-        return role_response
-
+        logger.info("ConfigMgt-roles created successfully.")
+        return response.json()
     except requests.RequestException as e:
-        logger.error(f"An error occurred while creating ConfigMgt role: {e}")
+        logger.error(f"Error creating ConfigMgt role: {e}")
         return None
 
 # Create a role if it doesn't exist
@@ -138,36 +155,25 @@ def create_role(token, name, parent_id):
         "name": name,
         "parentId": parent_id
     }
+
     try:
         response = requests.post(ROLE_URL, headers=headers, json=payload, verify=False)
         response.raise_for_status()
         logger.info(f"Role '{name}' created successfully.")
-
-    except requests.HTTPError as e:
-        if e.response.status_code == 409:
-            logger.info(f"Role '{name}' already exists. Skipping creation.")
-        else:
-            logger.error(f"An error occurred while creating role '{name}': {e}")
     except requests.RequestException as e:
-        logger.error(f"An error occurred while creating role '{name}': {e}")
+        logger.error(f"Error creating role '{name}': {e}")
 
-# Function to create multiple roles based on ROLE_NAMES
+# Create multiple roles
 def create_config_roles(token, admin_api_url):
-    parent_id_cm = get_administrators_id(admin_api_url, token, role_name="ConfigMgt-roles")
-    if not parent_id_cm:
+    parent_id = get_administrators_id(admin_api_url, token, role_name="ConfigMgt-roles")
+    if not parent_id:
         logger.warning("ConfigMgt-roles ID not found. Aborting role creation.")
         return
 
-    roles = [{"name": role_name.strip(), "parentId": parent_id_cm} for role_name in ROLE_NAMES]
+    for role_name in ROLE_NAMES:
+        create_role(token, role_name.strip(), parent_id)
 
-    for role in roles:
-        create_role(token, role["name"], role["parentId"])
-
-# Example usage
-def authenticate(auth_url, username, password):
-    # Simulated authentication function
-    return "mocked-auth-token"
-
+# Main function
 def main():
     token = authenticate(AUTH_URL, AUTH_USERNAME, AUTH_PASSWORD)
     if not token:
@@ -176,13 +182,11 @@ def main():
 
     parent_id = get_administrators_id(ADMIN_API_URL, token, role_name="Administrators")
     if parent_id:
-        config_mgt_response = create_configMgt_role(parent_id, ROLE_FILTER, token)
-
-        # Call create_config_roles regardless of whether ConfigMgt-roles was created or already exists
+        create_configMgt_role(parent_id, ROLE_URL, token)
         create_config_roles(token, ADMIN_API_URL)
     else:
         logger.error("Administrators ID not found. Exiting.")
 
-# Run the script
 if __name__ == "__main__":
     main()
+

@@ -3,6 +3,10 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './UserProfileAdministrator.css';
 import CreateUserForm from './CreateUser';
+import config from './config.json';
+
+const PAS_IP = config.PAS_IP;
+const RBAC_PORT = config.RBAC_PORT;
 
 const rolePermissions = {
   'Administrator': ['DoAll'],
@@ -52,7 +56,7 @@ const UserProfileAdministrator = () => {
 
     // const fetchUsers = async () => {
     //   try {
-    //     const response = await axios.get('http://9.46.112.167:8001/users');
+    //     const response = await axios.get('http://${PAS_IP}:${RBAC_PORT}/users');
     //     setUsers(response.data); // Adjust based on actual response structure
     //   } catch (error) {
     //     console.error('Error fetching users:', error);
@@ -62,7 +66,7 @@ const UserProfileAdministrator = () => {
     // // Fetch groups
     // const fetchGroups = async () => {
     //   try {
-    //     const response = await axios.get('http://9.46.112.167:8001/groups');
+    //     const response = await axios.get('http://${PAS_IP}:${RBAC_PORT}/groups');
     //     setGroups(response.data); // Adjust based on actual response structure
     //   } catch (error) {
     //     console.error('Error fetching groups:', error);
@@ -99,7 +103,7 @@ const UserProfileAdministrator = () => {
         const group = roles.find(role => role.group_name === groupName);
         if (group) {
           const payload = { user_id: selectedUserIds, group_id: group.group_id };
-          return axios.post('http://9.46.112.167:8001/add_user_to_group', payload);
+          return axios.post(`http://${PAS_IP}:${RBAC_PORT}/add_user_to_group`, payload);
         }
       });
 
@@ -107,7 +111,7 @@ const UserProfileAdministrator = () => {
         const group = roles.find(role => role.group_name === groupName);
         if (group) {
           const payload = { user_id: selectedUserIds, group_id: group.group_id };
-          return axios.delete('http://9.46.112.167:8001/remove_user_from_group', { data: payload });
+          return axios.delete(`http://${PAS_IP}:${RBAC_PORT}/remove_user_from_group`, { data: payload });
         }
       });
 
@@ -130,7 +134,7 @@ const UserProfileAdministrator = () => {
 
   // Fetch users from API
   const fetchUsers = () => {
-    axios.get('http://9.46.112.167:8001/users')
+    axios.get(`http://${PAS_IP}:${RBAC_PORT}/users`)
       .then(response => {
         setUsers(response.data);
       })
@@ -143,7 +147,7 @@ const UserProfileAdministrator = () => {
 
   // Fetch roles from API
   const fetchRoles = () => {
-    axios.get('http://9.46.112.167:8001/groups')
+    axios.get(`http://${PAS_IP}:${RBAC_PORT}/groups`)
       .then(response => {
         setRoles(response.data);
       })
@@ -154,7 +158,7 @@ const UserProfileAdministrator = () => {
 
   // Fetch permissions from API
   const fetchPermissions = () => {
-    axios.get('http://9.46.112.167:8001/tasks')
+    axios.get(`http://${PAS_IP}:${RBAC_PORT}/tasks`)
       .then(response => {
         setPermissions(response.data);
       })
@@ -165,7 +169,7 @@ const UserProfileAdministrator = () => {
 
   const fetchUserGroups = async (userId) => {
     try {
-      const response = await axios.get(`http://9.46.112.167:8001/get_user_groups_and_tasks/${userId}`);
+      const response = await axios.get(`http://${PAS_IP}:${RBAC_PORT}/get_user_groups_and_tasks/${userId}`);
 
       if (response.status === 200 && response.data) {
         const userGroupNames = response.data.map(group => group.group_name);
@@ -185,12 +189,9 @@ const UserProfileAdministrator = () => {
     }
   };
 
-
-
-
   // Handle search functionality
   const handleSearch = () => {
-    axios.get('http://9.46.112.167:8001/users')
+    axios.get(`http://${PAS_IP}:${RBAC_PORT}/users`)
       .then(response => {
         const filteredUsers = response.data.filter(user =>
           user.username.toLowerCase().includes(searchTerm.toLowerCase())
@@ -298,7 +299,7 @@ const UserProfileAdministrator = () => {
     };
 
     try {
-      const response = await fetch('http://9.46.112.167:8001/reset_password', {
+      const response = await fetch(`http://${PAS_IP}:${RBAC_PORT}/reset_password`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',  // Using capitalized 'Accept' for consistency
@@ -338,7 +339,7 @@ const UserProfileAdministrator = () => {
   const handleConfirmDelete = () => {
     const userId = selectedUserIds;
 
-    axios.delete(`http://9.46.112.167:8001/delete_user/${userId}`)
+    axios.delete(`http://${PAS_IP}:${RBAC_PORT}/delete_user/${userId}`)
       .then(() => {
         setDeleteMessage('User deleted successfully.');
         setIsError(false);
@@ -383,7 +384,7 @@ const UserProfileAdministrator = () => {
   // Function to handle user creation
   const handleCreateUser = async (username, password, email) => {
     try {
-      const response = await axios.post('http://9.46.112.167:8001/create_user', {
+      const response = await axios.post(`http://${PAS_IP}:${RBAC_PORT}/create_user`, {
         username,
         password,
         email,

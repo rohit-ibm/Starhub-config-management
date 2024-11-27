@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import './DiscoveryManagement.css';
 import axios from 'axios';
-import deviceGroupsData from './config-management.json'; // Import JSON data
+import deviceGroupsData from './config-management.json'; // Import JSON 
+import config from './config.json';
+
+
+const PAS_IP = config.PAS_IP;
+const BACKEND_PORT = config.BACKEND_PORT;
+
 
 const App = () => {
   const [deviceGroups, setDeviceGroups] = useState([]);
@@ -43,7 +49,7 @@ const App = () => {
         setDeviceGroups(staticDeviceGroups);
 
         // Fetch all devices initially
-        const response = await axios.get('http://9.46.112.167:5000/inventory_data', {
+        const response = await axios.get(`http://${PAS_IP}:${BACKEND_PORT}/inventory_data`, {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -97,7 +103,7 @@ const App = () => {
   const handleDiscoverDevice = async () => {
     try {
       // Simulate fetching devices from an API
-      const response = await axios.get('http://9.46.112.167:5000/update_device_groups', {
+      const response = await axios.get(`http://${PAS_IP}:${BACKEND_PORT}/update_device_groups`, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -126,7 +132,7 @@ const App = () => {
   const totalPages = Math.ceil((deviceGroupDetails?.devices.length || 0) / devicesPerPage);
 
 
-  
+
   return (
     <div className="container">
       {/* <h1 className="header">Device Groups</h1> */}

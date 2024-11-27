@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import config from './config.json';
+
+const PAS_IP = config.PAS_IP;
+const RBAC_PORT = config.RBAC_PORT;
 
 const ResetPassword = ({ users }) => {
     const [userId, setUserId] = useState('');
@@ -14,7 +18,7 @@ const ResetPassword = ({ users }) => {
         };
 
         try {
-            const response = await fetch('http://9.46.112.167:8001/reset_password', {
+            const response = await fetch(`http://${PAS_IP}:${RBAC_PORT}/reset_password`, {
                 method: 'POST',
                 headers: {
                     'accept': 'application/json',

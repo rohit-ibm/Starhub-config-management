@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { diffWords } from 'diff';
+import config from './config.json';
+
+const PAS_IP = config.PAS_IP;
+const BACKEND_PORT = config.BACKEND_PORT;
 
 const CompareFiles = () => {
   const { hostname } = useParams();
@@ -13,7 +17,7 @@ const CompareFiles = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       const fileFetchPromises = selectedFiles.map((filename) => {
-        return axios.get(`http://9.46.66.96:9000/config_files/view?hostname=${hostname}&filename=${filename}`)
+        return axios.get(`http://${PAS_IP}:${BACKEND_PORT}/config_files/view?hostname=${hostname}&filename=${filename}`)
           .then((response) => ({ [filename]: response.data }))
           .catch((error) => {
             console.error('Error fetching file content:', error);
