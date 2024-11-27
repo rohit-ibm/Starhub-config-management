@@ -142,9 +142,9 @@ def create_configMgt_role(parent_id, role_url, token):
 
 # Create a role if it doesn't exist
 def create_role(token, name, parent_id):
-    if role_exists(name, token):
+    if role_exists(name, token):  # Check if the role exists first
         logger.info(f"Role '{name}' already exists. Skipping creation.")
-        return
+        return  # Skip creation if the role exists
 
     headers = {
         "Content-Type": "application/json",
@@ -158,10 +158,14 @@ def create_role(token, name, parent_id):
 
     try:
         response = requests.post(ROLE_URL, headers=headers, json=payload, verify=False)
-        response.raise_for_status()
+        response.raise_for_status()  # This will raise an exception if the status code is not 2xx
         logger.info(f"Role '{name}' created successfully.")
     except requests.RequestException as e:
-        logger.error(f"Error creating role '{name}': {e}")
+        # If the role already exists (409 conflict), we log an informational message instead of an error
+        if response.status_code == 409:
+            logger.info(f"Role '{name}' already exists. Skipping creation.")
+        else:
+            logger.error(f"Error creating role '{name}': {e}")
 
 # Create multiple roles
 def create_config_roles(token, admin_api_url):
